@@ -1,91 +1,92 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <title>Seu Curso</title>
-
-    <style>
-        body {
-            background: #0f0f0f;
-            color: white;
-            font-family: Arial;
-            margin: 0;
-            padding: 20px;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .aula {
-            background: #1c1c1c;
-            padding: 20px;
-            margin-bottom: 25px;
-            border-radius: 10px;
-        }
-
-        video {
-            width: 100%;
-            max-width: 700px;
-            border-radius: 10px;
-        }
-
-        .ok {
-            color: #00ff88;
-            font-weight: bold;
-        }
-
-        .topo {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .btn {
-            background: red;
-            color: white;
-            padding: 10px 15px;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Área VIP — Sinal Verde</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<div class="topo">
-    <h2>🎬 Plataforma do Curso</h2>
-    <a href="/logout" class="btn">Sair</a>
+<div class="pk-topo">
+  <div class="lp-logo"><span class="dot"></span>SINAL VERDE — VIP</div>
+  <a href="/logout" class="pk-sair">Sair</a>
 </div>
 
-<h1>Bem-vindo ao seu curso 🚀</h1>
+<div class="pk-wrap">
 
-{% for aula in aulas %}
-<div class="aula">
-    <h2>{{ aula.titulo }}</h2>
+  <h1 class="pk-intro-title">Bem-vindo à área VIP 🚀</h1>
+  <p class="pk-intro-sub">Assista o vídeo abaixo antes de tudo — ele explica como funciona o grupo e como usar os palpites.</p>
 
-    <video controls controlsList="nodownload"
-        onended="marcar('{{ aula.id }}')">
-        <source src="{{ url_for('video', aula_id=aula.id) }}" type="video/mp4">
-        Seu navegador não suporta vídeo.
+  {% if aulas %}
+  <div class="pk-video-wrap">
+    <video controls controlsList="nodownload" onended="marcar('{{ aulas[0].id }}')">
+      <source src="{{ url_for('video', aula_id=aulas[0].id) }}" type="video/mp4">
+      Seu navegador não suporta vídeo.
     </video>
+  </div>
+  {% endif %}
 
-    {% if aula.id in vistas %}
-        <p class="ok">✔ Aula concluída</p>
-    {% else %}
-        <p>⏳ Ainda não assistida</p>
-    {% endif %}
+  <div class="pk-section-label">Palpites de hoje</div>
+
+  <div class="pk-picks-grid">
+
+    <!-- ===== EXEMPLO — substitua pelos seus palpites reais antes de divulgar ===== -->
+    <div class="pk-pick-card">
+      <div class="pk-hot">HOT 🔥</div>
+      <div class="pk-example-tag">EXEMPLO — troque pelo palpite real</div>
+      <div class="pk-meta">12 ago · Europa — Supertaça da Uefa</div>
+      <div class="pk-teams">PSG x Aston Villa</div>
+      <div class="pk-pick-row">
+        <div>
+          <div class="pk-market-lbl">Palpite</div>
+          <div class="pk-market-val">PSG vence</div>
+        </div>
+        <div class="pk-odd-box">
+          <div class="lbl">Odd</div>
+          <div class="val">1.68</div>
+        </div>
+        <a href="https://www.bet365.com" target="_blank" class="pk-bet-btn">Apostar →</a>
+      </div>
+    </div>
+
+    <div class="pk-pick-card">
+      <div class="pk-example-tag">EXEMPLO — troque pelo palpite real</div>
+      <div class="pk-meta">12 ago · América Latina — Copa Sul-Americana</div>
+      <div class="pk-teams">Bragantino x Atlético MG</div>
+      <div class="pk-pick-row">
+        <div>
+          <div class="pk-market-lbl">Palpite</div>
+          <div class="pk-market-val">Menos de 2.5 gols</div>
+        </div>
+        <div class="pk-odd-box">
+          <div class="lbl">Odd</div>
+          <div class="val">1.96</div>
+        </div>
+        <a href="https://www.novibet.bet.br" target="_blank" class="pk-bet-btn">Apostar →</a>
+      </div>
+    </div>
+    <!-- ===== FIM DO EXEMPLO ===== -->
+
+  </div>
+
+  <div class="pk-telegram-banner">
+    <div class="txt">
+      <strong>📢 Grupo no Telegram</strong>
+      <span>Todos os palpites em primeira mão, direto no seu celular.</span>
+    </div>
+    <span class="badge-soon">Em breve</span>
+  </div>
+
 </div>
-{% endfor %}
 
 <script>
 function marcar(aula){
     fetch('/marcar', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({aula: aula})
     })
 }

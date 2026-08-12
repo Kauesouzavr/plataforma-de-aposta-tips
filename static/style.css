@@ -1,5 +1,5 @@
 /* ============================================================
-   JV TIPS — design tokens
+   SINAL VERDE — design tokens
    Paleta: fundo quase-preto, verde-sinal como único acento,
    tipografia técnica (dados) + display condensada (impacto).
    ============================================================ */
@@ -269,4 +269,83 @@ th { color: var(--green); text-align: left; }
   .lp-nav-links { display: none; }
   .lp-stats-grid { grid-template-columns: 1fr; }
   .lp-plan-toggle { flex-direction: column; }
+}
+
+/* ============================================================
+   ÁREA VIP DE PALPITES (/curso)
+   ============================================================ */
+.pk-topo {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 5vw;
+  background: rgba(10, 13, 11, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+.pk-sair {
+  background: transparent; color: var(--text-muted); border: 1px solid var(--border);
+  padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+}
+.pk-sair:hover { border-color: var(--danger); color: var(--danger); }
+
+.pk-wrap { max-width: 900px; margin: 0 auto; padding: 40px 5vw 80px; }
+
+.pk-intro-title { font-family: var(--font-display); text-transform: uppercase; font-size: clamp(22px, 3vw, 30px); margin-bottom: 8px; }
+.pk-intro-sub { color: var(--text-muted); margin-bottom: 24px; }
+
+.pk-video-wrap {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+  padding: 16px; margin-bottom: 60px;
+}
+.pk-video-wrap video { width: 100%; border-radius: 10px; display: block; }
+
+.pk-section-label {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-mono); font-size: 13px; color: var(--green);
+  text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 20px;
+}
+.pk-section-label::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+.pk-picks-grid { display: flex; flex-direction: column; gap: 18px; margin-bottom: 50px; }
+
+.pk-pick-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 22px; position: relative; overflow: hidden;
+}
+.pk-hot {
+  position: absolute; top: 0; right: 0;
+  background: var(--green); color: #04150a; font-weight: 800; font-size: 11px;
+  padding: 5px 14px; border-bottom-left-radius: 10px; letter-spacing: 0.5px;
+}
+.pk-example-tag {
+  display: inline-block; font-family: var(--font-mono); font-size: 10px; color: var(--text-faint);
+  border: 1px solid var(--border); padding: 2px 8px; border-radius: 4px; margin-bottom: 10px; letter-spacing: 1px;
+}
+.pk-meta { font-size: 12px; color: var(--text-faint); margin-bottom: 4px; }
+.pk-teams { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+.pk-pick-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-elevated); border-radius: 10px; padding: 14px 18px; gap: 16px; flex-wrap: wrap;
+}
+.pk-market-lbl { font-size: 11px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 1px; }
+.pk-market-val { font-size: 15px; font-weight: 700; color: var(--text); }
+.pk-odd-box { text-align: center; }
+.pk-odd-box .lbl { font-size: 10px; color: var(--text-faint); text-transform: uppercase; }
+.pk-odd-box .val { font-family: var(--font-mono); font-size: 22px; font-weight: 700; color: var(--green); }
+.pk-bet-btn {
+  background: var(--green); color: #04150a; font-weight: 800; font-size: 13px;
+  padding: 12px 20px; border-radius: 8px; white-space: nowrap; display: inline-block;
+}
+.pk-bet-btn:hover { box-shadow: 0 6px 20px var(--green-glow); }
+
+.pk-telegram-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  background: var(--bg-card); border: 1px dashed var(--border); border-radius: 14px; padding: 24px;
+  opacity: 0.6;
+}
+.pk-telegram-banner .txt strong { display: block; color: var(--text); font-size: 15px; margin-bottom: 4px; }
+.pk-telegram-banner .txt span { font-size: 13px; color: var(--text-faint); }
+.pk-telegram-banner .badge-soon {
+  font-family: var(--font-mono); font-size: 11px; color: var(--text-faint);
+  border: 1px solid var(--border); padding: 6px 14px; border-radius: 8px;
 }
