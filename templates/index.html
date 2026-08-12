@@ -2,35 +2,195 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Mini Curso</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sinal Verde — Análises Esportivas VIP</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
-
 <body>
 
-<div class="container">
-    <h1>🚀 Mini Curso Exclusivo</h1>
-    <p>Aprenda passo a passo e tenha resultados rápidos!</p>
+<!-- NAV -->
+<nav class="lp-nav">
+  <div class="lp-logo"><span class="dot"></span>SINAL VERDE</div>
+  <div class="lp-nav-links">
+    <a href="#inicio">Início</a>
+    <a href="#resultados">Resultados</a>
+    <a href="#metodo">Método</a>
+    <a href="#planos">Planos</a>
+  </div>
+  <a href="#cadastro" class="lp-vip-btn">🔒 Área VIP</a>
+</nav>
 
-    <div class="card">
-        <h2>O que você vai aprender:</h2>
-        <ul>
-            <li>✔ Método simples</li>
-            <li>✔ Estratégias práticas</li>
-            <li>✔ Resultados rápidos</li>
-        </ul>
+<!-- HERO -->
+<section class="lp-hero" id="inicio">
+  <div class="lp-hero-grid">
+    <div>
+      <div class="lp-eyebrow">Disciplina · Estratégia · Dados</div>
+      <h1 class="lp-h1">Análise que vira<br><span class="accent">resultado real.</span></h1>
+      <p class="lp-sub">Entradas selecionadas com gestão de risco e critério — sem achismo, sem "chute do dia". Você recebe o sinal, decide com clareza.</p>
 
-        <form action="/registrar" method="POST">
-            <input type="email" name="email" placeholder="Seu email" required>
-            <input type="password" name="senha" placeholder="Crie uma senha (mín. 6 caracteres)" minlength="6" required>
+      <div class="lp-badges">
+        <div class="lp-badge">
+          <span class="num">+100 mil</span>
+          <span class="lbl">em resultados analisados</span>
+        </div>
+        <div class="lp-badge">
+          <span class="num">Diário</span>
+          <span class="lbl">estudo e análise</span>
+        </div>
+        <div class="lp-badge">
+          <span class="num">Gestão</span>
+          <span class="lbl">de risco e disciplina</span>
+        </div>
+      </div>
 
-            <button type="submit">🚀 Comprar acesso</button>
-        </form>
+      <a href="#cadastro" class="lp-cta">🚀 Quero fazer parte do VIP</a>
 
-        <a href="/login">Já tenho conta</a>
+      <div class="lp-social-proof">
+        <div class="lp-avatars"><span>+</span><span>+</span><span>+</span></div>
+        <span class="txt"><strong style="color:var(--text)">+384</strong> alunos no grupo VIP</span>
+      </div>
     </div>
 
-</div>
+    <div class="lp-signal-panel">
+      <div class="lp-signal-row">
+        <div>
+          <div class="lp-signal-label">Lucro acumulado</div>
+          <div class="lp-signal-value green">R$ 100.254,37</div>
+          <div class="lp-signal-sub">últimos 12 meses</div>
+        </div>
+      </div>
+      <div class="lp-signal-row">
+        <div>
+          <div class="lp-signal-label">Taxa de acerto</div>
+          <div class="lp-signal-value">78,6%</div>
+          <div class="lp-signal-sub">média geral</div>
+        </div>
+      </div>
+      <div class="lp-signal-row">
+        <div>
+          <div class="lp-signal-label">ROI médio</div>
+          <div class="lp-signal-value">18,7%</div>
+          <div class="lp-signal-sub">sobre o investido</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTADOS -->
+<section class="lp-section" id="resultados">
+  <h2 class="lp-section-title">Resultados reais</h2>
+
+  <div class="lp-stats-grid">
+    <div class="lp-stat-card">
+      <div class="lbl">Lucro acumulado</div>
+      <div class="val">R$ 100.254,37</div>
+      <div class="sub">12 meses de resultados</div>
+    </div>
+    <div class="lp-stat-card">
+      <div class="lbl">Taxa de acerto</div>
+      <div class="val">78,6%</div>
+      <div class="sub">média geral</div>
+    </div>
+    <div class="lp-stat-card">
+      <div class="lbl">ROI médio</div>
+      <div class="val">18,7%</div>
+      <div class="sub">sobre o valor investido</div>
+    </div>
+  </div>
+
+  <div class="lp-sport-bars">
+    <div class="lp-sport-row">
+      <div class="name">Futebol</div>
+      <div class="bar-track"><div class="bar-fill" style="width:82%"></div></div>
+      <div class="pct">82,4%</div>
+    </div>
+    <div class="lp-sport-row">
+      <div class="name">Basquete</div>
+      <div class="bar-track"><div class="bar-fill" style="width:76%"></div></div>
+      <div class="pct">76,1%</div>
+    </div>
+    <div class="lp-sport-row">
+      <div class="name">Tênis</div>
+      <div class="bar-track"><div class="bar-fill" style="width:71%"></div></div>
+      <div class="pct">71,2%</div>
+    </div>
+    <div class="lp-sport-row">
+      <div class="name">E-sports</div>
+      <div class="bar-track"><div class="bar-fill" style="width:69%"></div></div>
+      <div class="pct">68,7%</div>
+    </div>
+  </div>
+
+  <div class="lp-more-results">
+    <a href="https://instagram.com/joaovtcarvalho" target="_blank" class="lp-btn-outline">Ver mais resultados →</a>
+  </div>
+</section>
+
+<!-- HISTÓRIA -->
+<section class="lp-section lp-historia" id="metodo">
+  <div class="lp-historia-grid">
+    <div class="lp-historia-visual">// sinal em análise</div>
+    <div>
+      <div class="lp-eyebrow">Minha história</div>
+      <h3>A missão começou muito antes das apostas.</h3>
+      <p>Foi na disciplina que aprendi sobre foco, controle emocional e estratégia. Levei esses princípios pro mundo das apostas e transformei conhecimento em resultado consistente.</p>
+      <p>Hoje compartilho esse método com quem quer apostar com critério — não com sorte.</p>
+
+      <div class="lp-path">
+        <div class="lp-path-step"><span class="n">→</span> Disciplina</div>
+        <div class="lp-path-step"><span class="n">→</span> Estudo do mercado</div>
+        <div class="lp-path-step"><span class="n">→</span> Estratégia de resultados</div>
+        <div class="lp-path-step"><span class="n">→</span> Liberdade financeira</div>
+      </div>
+
+      <a href="#cadastro" class="lp-cta">Conhecer o método</a>
+    </div>
+  </div>
+</section>
+
+<!-- CADASTRO / VIP -->
+<section class="lp-section lp-cadastro" id="cadastro">
+  <h2 class="lp-section-title" id="planos">Escolha seu acesso VIP</h2>
+
+  <div class="lp-cadastro-box">
+    <div class="lp-plan-toggle">
+      <div class="lp-plan-opt active">
+        <div class="p-name">Mensal</div>
+        <div class="p-price">R$ 29,90</div>
+      </div>
+      <div class="lp-plan-opt" style="opacity:0.5; cursor:default;">
+        <div class="p-name">Anual · em breve</div>
+        <div class="p-price">R$ 100,00</div>
+      </div>
+    </div>
+
+    <form action="/registrar" method="POST">
+      <input type="email" name="email" placeholder="Seu email" required>
+      <input type="password" name="senha" placeholder="Crie uma senha (mín. 6 caracteres)" minlength="6" required>
+      <button type="submit">🚀 Assinar agora</button>
+    </form>
+
+    <p class="lp-plan-note">Pagamento processado com segurança pelo Mercado Pago.</p>
+    <div class="lp-login-link">Já é membro VIP? <a href="/login">Entrar</a></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="lp-footer">
+  <div class="lp-footer-grid">
+    <div class="lp-logo"><span class="dot"></span>SINAL VERDE</div>
+    <div class="lp-contact">
+      <a href="https://instagram.com/joaovtcarvalho" target="_blank">📷 @joaovtcarvalho</a>
+      <a href="https://wa.me/5524992114137" target="_blank">💬 WhatsApp</a>
+    </div>
+  </div>
+  <div class="lp-disclaimer">
+    Apostas esportivas envolvem risco financeiro. Este serviço oferece análises e conteúdo educacional, sem garantia de lucro. Proibido para menores de 18 anos. Aposte com responsabilidade.
+  </div>
+</footer>
 
 </body>
 </html>
