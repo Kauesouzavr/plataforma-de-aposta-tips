@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Mini Curso</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+    <h1>🚀 Mini Curso Exclusivo</h1>
+    <p>Aprenda passo a passo e tenha resultados rápidos!</p>
+
+    <div class="card">
+        <h2>O que você vai aprender:</h2>
+        <ul>
+            <li>✔ Método simples</li>
+            <li>✔ Estratégias práticas</li>
+            <li>✔ Resultados rápidos</li>
+        </ul>
+
+        <form action="/registrar" method="POST">
+            <input type="email" name="email" placeholder="Seu email" required>
+            <input type="password" name="senha" placeholder="Crie uma senha (mín. 6 caracteres)" minlength="6" required>
+
+            <button type="submit">🚀 Comprar acesso</button>
+        </form>
+
+        <a href="/login">Já tenho conta</a>
+    </div>
+
+</div>
+
+</body>
+</html>

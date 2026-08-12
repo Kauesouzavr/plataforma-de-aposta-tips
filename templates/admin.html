@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Admin</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <div class="topo" style="display:flex; justify-content:space-between; align-items:center;">
+        <h1>📊 Painel Admin</h1>
+        <a href="/admin/logout">Sair</a>
+    </div>
+
+    <h2>Usuários</h2>
+    <table border="1">
+        <tr>
+            <th>Email</th>
+            <th>Status</th>
+        </tr>
+        {% for u in usuarios %}
+        <tr>
+            <td>{{ u[0] }}</td>
+            <td>{{ u[1] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Progresso</h2>
+    <table border="1">
+        <tr>
+            <th>Email</th>
+            <th>Aulas Assistidas</th>
+        </tr>
+        {% for p in progresso %}
+        <tr>
+            <td>{{ p[0] }}</td>
+            <td>{{ p[1] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+</body>
+</html>
