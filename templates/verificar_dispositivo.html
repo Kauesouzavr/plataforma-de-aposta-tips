@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Verificar dispositivo</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h2>🔐 Novo dispositivo detectado</h2>
+        <p style="color: var(--text-muted); font-size: 14px;">
+            Enviamos um código de 6 dígitos para <strong style="color:var(--text)">{{ email }}</strong>.
+            Digite abaixo pra confirmar que é você.
+        </p>
+
+        {% if erro %}
+            <p style="color: #ff4d4d; font-weight: bold;">{{ erro }}</p>
+        {% endif %}
+
+        <form method="POST">
+            <input type="text" name="codigo" placeholder="Código de 6 dígitos" maxlength="6" required>
+            <button type="submit">Confirmar</button>
+        </form>
+
+        <form method="POST" action="/verificar-dispositivo/reenviar" style="margin-top: 10px;">
+            <button type="submit" style="background: transparent; border: 1px solid var(--border); color: var(--text-muted);">Reenviar código</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

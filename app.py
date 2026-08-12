@@ -1,9 +1,13 @@
 import os
+import secrets
+import random
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, session, jsonify, send_from_directory, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 import psycopg2
 import psycopg2.extras
 import mercadopago
+import requests
 
 try:
     from dotenv import load_dotenv
@@ -30,6 +34,11 @@ if not ADMIN_PASSWORD:
 PALPITES_PASSWORD = os.environ.get("PALPITES_PASSWORD")
 if not PALPITES_PASSWORD:
     raise RuntimeError("Defina a variável de ambiente PALPITES_PASSWORD antes de rodar o app.")
+
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
+if not RESEND_API_KEY:
+    raise RuntimeError("Defina a variável de ambiente RESEND_API_KEY antes de rodar o app.")
+EMAIL_FROM = os.environ.get("EMAIL_FROM", "Sinal Verde <onboarding@resend.dev>")
 
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
 
@@ -76,6 +85,27 @@ def init_db():
             odd TEXT NOT NULL,
             link TEXT NOT NULL,
             hot BOOLEAN NOT NULL DEFAULT FALSE,
+            criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+        )
+    ''')
+
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS dispositivos (
+            id SERIAL PRIMARY KEY,
+            email TEXT NOT NULL,
+            device_id TEXT NOT NULL,
+            verificado BOOLEAN NOT NULL DEFAULT FALSE,
+            criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+            UNIQUE(email, device_id)
+        )
+    ''')
+
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS codigos_verificacao (
+            id SERIAL PRIMARY KEY,
+            email TEXT NOT NULL,
+            device_id TEXT NOT NULL,
+            codigo TEXT NOT NULL,
             criado_em TIMESTAMP NOT NULL DEFAULT NOW()
         )
     ''')
@@ -182,6 +212,108 @@ def marcar_pago(email):
     conn.close()
 
 
+# ---------------- CONTROLE DE DISPOSITIVOS (limite de 2 por conta) ----------------
+MAX_DISPOSITIVOS = 2
+
+
+def gerar_device_id():
+    return secrets.token_hex(24)
+
+
+def contar_dispositivos_verificados(email):
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT COUNT(*) AS total FROM dispositivos WHERE email=%s AND verificado=TRUE", (email,))
+    total = c.fetchone()["total"]
+    c.close()
+    conn.close()
+    return total
+
+
+def dispositivo_verificado(email, device_id):
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "SELECT verificado FROM dispositivos WHERE email=%s AND device_id=%s",
+        (email, device_id)
+    )
+    row = c.fetchone()
+    c.close()
+    conn.close()
+    return bool(row and row["verificado"])
+
+
+def registrar_dispositivo(email, device_id, verificado=False):
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO dispositivos (email, device_id, verificado) VALUES (%s, %s, %s) "
+        "ON CONFLICT (email, device_id) DO UPDATE SET verificado=%s",
+        (email, device_id, verificado, verificado)
+    )
+    conn.commit()
+    c.close()
+    conn.close()
+
+
+def enviar_codigo_verificacao(email, device_id):
+    codigo = ''.join(random.choices('0123456789', k=6))
+
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "INSERT INTO codigos_verificacao (email, device_id, codigo) VALUES (%s, %s, %s)",
+        (email, device_id, codigo)
+    )
+    conn.commit()
+    c.close()
+    conn.close()
+
+    try:
+        requests.post(
+            "https://api.resend.com/emails",
+            headers={"Authorization": f"Bearer {RESEND_API_KEY}"},
+            json={
+                "from": EMAIL_FROM,
+                "to": [email],
+                "subject": "Seu código de acesso — Sinal Verde",
+                "html": (
+                    f"<p>Detectamos um login em um novo dispositivo.</p>"
+                    f"<p>Seu código de verificação é:</p>"
+                    f"<h2>{codigo}</h2>"
+                    f"<p>Esse código expira em 10 minutos. Se não foi você, ignore este email.</p>"
+                )
+            },
+            timeout=10
+        )
+    except Exception as e:
+        app.logger.error(f"Erro ao enviar email de verificação: {e}")
+
+
+def validar_codigo_verificacao(email, device_id, codigo):
+    conn = get_db()
+    c = conn.cursor()
+    c.execute(
+        "SELECT id, criado_em FROM codigos_verificacao "
+        "WHERE email=%s AND device_id=%s AND codigo=%s "
+        "ORDER BY criado_em DESC LIMIT 1",
+        (email, device_id, codigo)
+    )
+    row = c.fetchone()
+
+    valido = False
+    if row and (datetime.now() - row["criado_em"]) < timedelta(minutes=10):
+        valido = True
+
+    if valido:
+        c.execute("DELETE FROM codigos_verificacao WHERE email=%s AND device_id=%s", (email, device_id))
+        conn.commit()
+
+    c.close()
+    conn.close()
+    return valido
+
+
 def resolver_email_pago(topic, resource_id):
     """
     Busca o pagamento (ou o pedido) na API do Mercado Pago e devolve o email
@@ -257,7 +389,14 @@ def sucesso():
         email = email.strip().lower()
         marcar_pago(email)
         session['user'] = email
-        return redirect('/curso')
+
+        # Primeiro dispositivo é liberado automaticamente (é o momento da compra)
+        device_id = request.cookies.get('device_id') or gerar_device_id()
+        registrar_dispositivo(email, device_id, verificado=True)
+
+        resp = redirect('/curso')
+        resp.set_cookie('device_id', device_id, max_age=60*60*24*365, httponly=True, samesite='Lax')
+        return resp
 
     # Se não deu pra confirmar automaticamente, manda pro login
     return render_template('sucesso.html')
@@ -277,13 +416,75 @@ def login():
         c.close()
         conn.close()
 
-        if row and check_password_hash(row["senha_hash"], senha):
+        if not row or not check_password_hash(row["senha_hash"], senha):
+            return render_template('login.html', erro="Email ou senha inválidos")
+
+        device_id = request.cookies.get('device_id')
+
+        # Dispositivo já reconhecido e verificado -> login direto
+        if device_id and dispositivo_verificado(email, device_id):
+            session['user'] = email
+            resp = redirect('/curso')
+            resp.set_cookie('device_id', device_id, max_age=60*60*24*365, httponly=True, samesite='Lax')
+            return resp
+
+        # Dispositivo novo -> checa limite antes de pedir verificação
+        if not device_id:
+            device_id = gerar_device_id()
+
+        if contar_dispositivos_verificados(email) >= MAX_DISPOSITIVOS:
+            return render_template(
+                'login.html',
+                erro=f"Limite de {MAX_DISPOSITIVOS} dispositivos atingido nessa conta. "
+                     f"Fale com o suporte pra liberar um novo aparelho."
+            )
+
+        registrar_dispositivo(email, device_id, verificado=False)
+        enviar_codigo_verificacao(email, device_id)
+
+        session['pendente_email'] = email
+        session['pendente_device'] = device_id
+
+        resp = redirect('/verificar-dispositivo')
+        resp.set_cookie('device_id', device_id, max_age=60*60*24*365, httponly=True, samesite='Lax')
+        return resp
+
+    return render_template('login.html')
+
+
+# ---------------- VERIFICAÇÃO DE DISPOSITIVO NOVO ----------------
+@app.route('/verificar-dispositivo', methods=['GET', 'POST'])
+def verificar_dispositivo():
+    email = session.get('pendente_email')
+    device_id = session.get('pendente_device')
+
+    if not email or not device_id:
+        return redirect('/login')
+
+    if request.method == 'POST':
+        codigo = request.form.get('codigo', '').strip()
+
+        if validar_codigo_verificacao(email, device_id, codigo):
+            registrar_dispositivo(email, device_id, verificado=True)
+            session.pop('pendente_email', None)
+            session.pop('pendente_device', None)
             session['user'] = email
             return redirect('/curso')
 
-        return render_template('login.html', erro="Email ou senha inválidos")
+        return render_template('verificar_dispositivo.html', erro="Código inválido ou expirado.", email=email)
 
-    return render_template('login.html')
+    return render_template('verificar_dispositivo.html', email=email)
+
+
+@app.route('/verificar-dispositivo/reenviar', methods=['POST'])
+def reenviar_codigo():
+    email = session.get('pendente_email')
+    device_id = session.get('pendente_device')
+
+    if email and device_id:
+        enviar_codigo_verificacao(email, device_id)
+
+    return redirect('/verificar-dispositivo')
 
 
 # ---------------- CURSO ----------------
@@ -313,7 +514,7 @@ def curso():
     c.close()
     conn.close()
 
-    return render_template('curso.html', aulas=AULAS, vistas=vistas, palpites=palpites)
+    return render_template('curso.html', aulas=AULAS, vistas=vistas, palpites=palpites, email=email)
 
 
 # ---------------- VÍDEO (única forma de acessar o arquivo .mp4, sempre autenticada) ----------------
@@ -460,7 +661,11 @@ def admin():
 
     c.execute("SELECT email, status FROM usuarios")
     usuarios_rows = c.fetchall()
-    usuarios = [(r["email"], r["status"]) for r in usuarios_rows]
+
+    c.execute("SELECT email, COUNT(*) AS total FROM dispositivos WHERE verificado=TRUE GROUP BY email")
+    dispositivos_por_email = {r["email"]: r["total"] for r in c.fetchall()}
+
+    usuarios = [(r["email"], r["status"], dispositivos_por_email.get(r["email"], 0)) for r in usuarios_rows]
 
     c.execute("SELECT email, COUNT(aula) FROM progresso GROUP BY email")
     progresso_rows = c.fetchall()
@@ -476,6 +681,23 @@ def admin():
 def admin_logout():
     session.pop('admin', None)
     return redirect('/')
+
+
+@app.route('/admin/reset-dispositivos', methods=['POST'])
+def admin_reset_dispositivos():
+    if not session.get('admin'):
+        return redirect('/admin/login')
+
+    email = request.form.get('email', '').strip().lower()
+    if email:
+        conn = get_db()
+        c = conn.cursor()
+        c.execute("DELETE FROM dispositivos WHERE email=%s", (email,))
+        conn.commit()
+        c.close()
+        conn.close()
+
+    return redirect('/admin')
 
 
 # ---------------- LOGOUT ----------------

@@ -74,6 +74,24 @@ function marcar(aula){
         body: JSON.stringify({aula: aula})
     })
 }
+
+// Marca d'água discreta com o email do usuário logado — desincentiva
+// prints/capturas compartilhadas, já que a origem fica identificável.
+(function() {
+    const email = {{ email|tojson }};
+    if (!email) return;
+
+    const wm = document.createElement('div');
+    wm.style.cssText = 'position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:0.06; overflow:hidden;';
+
+    for (let r = 0; r < 30; r++) {
+        const row = document.createElement('div');
+        row.style.cssText = 'white-space:nowrap; transform: rotate(-20deg); margin: 34px -200px; font-family: monospace; font-size:13px; color: #ffffff;';
+        row.textContent = (email + '    ').repeat(15);
+        wm.appendChild(row);
+    }
+    document.body.appendChild(wm);
+})();
 </script>
 
 </body>
