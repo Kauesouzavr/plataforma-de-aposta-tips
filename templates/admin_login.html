@@ -2,7 +2,8 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Admin - Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — Sinal Verde</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -12,7 +13,7 @@
         <h2>🔒 Acesso Admin</h2>
 
         {% if erro %}
-            <p style="color: red; font-weight: bold;">{{ erro }}</p>
+            <p style="color: #ff4d4d; font-weight: bold;">{{ erro }}</p>
         {% endif %}
 
         <form method="POST">

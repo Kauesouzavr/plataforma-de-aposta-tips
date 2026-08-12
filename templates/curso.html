@@ -32,44 +32,28 @@
   <div class="pk-section-label">Palpites de hoje</div>
 
   <div class="pk-picks-grid">
-
-    <!-- ===== EXEMPLO — substitua pelos seus palpites reais antes de divulgar ===== -->
-    <div class="pk-pick-card">
-      <div class="pk-hot">HOT 🔥</div>
-      <div class="pk-example-tag">EXEMPLO — troque pelo palpite real</div>
-      <div class="pk-meta">12 ago · Europa — Supertaça da Uefa</div>
-      <div class="pk-teams">PSG x Aston Villa</div>
-      <div class="pk-pick-row">
-        <div>
-          <div class="pk-market-lbl">Palpite</div>
-          <div class="pk-market-val">PSG vence</div>
+    {% if palpites %}
+      {% for p in palpites %}
+      <div class="pk-pick-card">
+        {% if p.hot %}<div class="pk-hot">HOT 🔥</div>{% endif %}
+        <div class="pk-meta">{{ p.competicao }}</div>
+        <div class="pk-teams">{{ p.confronto }}</div>
+        <div class="pk-pick-row">
+          <div>
+            <div class="pk-market-lbl">Palpite</div>
+            <div class="pk-market-val">{{ p.mercado }}</div>
+          </div>
+          <div class="pk-odd-box">
+            <div class="lbl">Odd</div>
+            <div class="val">{{ p.odd }}</div>
+          </div>
+          <a href="{{ p.link }}" target="_blank" class="pk-bet-btn">Apostar →</a>
         </div>
-        <div class="pk-odd-box">
-          <div class="lbl">Odd</div>
-          <div class="val">1.68</div>
-        </div>
-        <a href="https://www.bet365.com" target="_blank" class="pk-bet-btn">Apostar →</a>
       </div>
-    </div>
-
-    <div class="pk-pick-card">
-      <div class="pk-example-tag">EXEMPLO — troque pelo palpite real</div>
-      <div class="pk-meta">12 ago · América Latina — Copa Sul-Americana</div>
-      <div class="pk-teams">Bragantino x Atlético MG</div>
-      <div class="pk-pick-row">
-        <div>
-          <div class="pk-market-lbl">Palpite</div>
-          <div class="pk-market-val">Menos de 2.5 gols</div>
-        </div>
-        <div class="pk-odd-box">
-          <div class="lbl">Odd</div>
-          <div class="val">1.96</div>
-        </div>
-        <a href="https://www.novibet.bet.br" target="_blank" class="pk-bet-btn">Apostar →</a>
-      </div>
-    </div>
-    <!-- ===== FIM DO EXEMPLO ===== -->
-
+      {% endfor %}
+    {% else %}
+      <p style="color: var(--text-faint); text-align:center;">Nenhum palpite publicado ainda hoje. Volte mais tarde 👀</p>
+    {% endif %}
   </div>
 
   <div class="pk-telegram-banner">

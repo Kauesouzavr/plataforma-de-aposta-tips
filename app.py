@@ -27,6 +27,10 @@ ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 if not ADMIN_PASSWORD:
     raise RuntimeError("Defina a variável de ambiente ADMIN_PASSWORD antes de rodar o app.")
 
+PALPITES_PASSWORD = os.environ.get("PALPITES_PASSWORD")
+if not PALPITES_PASSWORD:
+    raise RuntimeError("Defina a variável de ambiente PALPITES_PASSWORD antes de rodar o app.")
+
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
@@ -60,6 +64,19 @@ def init_db():
             email TEXT NOT NULL,
             aula TEXT NOT NULL,
             UNIQUE(email, aula)
+        )
+    ''')
+
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS palpites (
+            id SERIAL PRIMARY KEY,
+            competicao TEXT NOT NULL,
+            confronto TEXT NOT NULL,
+            mercado TEXT NOT NULL,
+            odd TEXT NOT NULL,
+            link TEXT NOT NULL,
+            hot BOOLEAN NOT NULL DEFAULT FALSE,
+            criado_em TIMESTAMP NOT NULL DEFAULT NOW()
         )
     ''')
 
@@ -289,10 +306,14 @@ def curso():
 
     c.execute("SELECT aula FROM progresso WHERE email=%s", (email,))
     vistas = [r["aula"] for r in c.fetchall()]
+
+    c.execute("SELECT * FROM palpites ORDER BY criado_em DESC LIMIT 20")
+    palpites = c.fetchall()
+
     c.close()
     conn.close()
 
-    return render_template('curso.html', aulas=AULAS, vistas=vistas)
+    return render_template('curso.html', aulas=AULAS, vistas=vistas, palpites=palpites)
 
 
 # ---------------- VÍDEO (única forma de acessar o arquivo .mp4, sempre autenticada) ----------------
@@ -343,6 +364,77 @@ def marcar():
     conn.close()
 
     return jsonify({"ok": True})
+
+
+# ---------------- PAINEL DE PALPITES (senha própria, separada do /admin) ----------------
+@app.route('/painel/login', methods=['GET', 'POST'])
+def painel_login():
+    if request.method == 'POST':
+        senha = request.form.get('senha', '')
+        if senha == PALPITES_PASSWORD:
+            session['operador'] = True
+            return redirect('/painel')
+        return render_template('painel_login.html', erro="Senha incorreta")
+
+    return render_template('painel_login.html')
+
+
+@app.route('/painel', methods=['GET', 'POST'])
+def painel():
+    if not session.get('operador'):
+        return redirect('/painel/login')
+
+    if request.method == 'POST':
+        competicao = request.form.get('competicao', '').strip()
+        confronto = request.form.get('confronto', '').strip()
+        mercado = request.form.get('mercado', '').strip()
+        odd = request.form.get('odd', '').strip()
+        link = request.form.get('link', '').strip()
+        hot = request.form.get('hot') == 'on'
+
+        if competicao and confronto and mercado and odd and link:
+            conn = get_db()
+            c = conn.cursor()
+            c.execute(
+                "INSERT INTO palpites (competicao, confronto, mercado, odd, link, hot) "
+                "VALUES (%s, %s, %s, %s, %s, %s)",
+                (competicao, confronto, mercado, odd, link, hot)
+            )
+            conn.commit()
+            c.close()
+            conn.close()
+
+        return redirect('/painel')
+
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("SELECT * FROM palpites ORDER BY criado_em DESC LIMIT 50")
+    palpites = c.fetchall()
+    c.close()
+    conn.close()
+
+    return render_template('painel.html', palpites=palpites)
+
+
+@app.route('/painel/excluir/<int:palpite_id>', methods=['POST'])
+def painel_excluir(palpite_id):
+    if not session.get('operador'):
+        return redirect('/painel/login')
+
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("DELETE FROM palpites WHERE id=%s", (palpite_id,))
+    conn.commit()
+    c.close()
+    conn.close()
+
+    return redirect('/painel')
+
+
+@app.route('/painel/logout')
+def painel_logout():
+    session.pop('operador', None)
+    return redirect('/')
 
 
 # ---------------- ADMIN (agora exige senha) ----------------
