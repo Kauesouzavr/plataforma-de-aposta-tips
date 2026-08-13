@@ -1,13 +1,14 @@
 import os
 import secrets
 import random
+import smtplib
+from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, session, jsonify, send_from_directory, abort
 from werkzeug.security import generate_password_hash, check_password_hash
 import psycopg2
 import psycopg2.extras
 import mercadopago
-import requests
 
 try:
     from dotenv import load_dotenv
@@ -35,10 +36,12 @@ PALPITES_PASSWORD = os.environ.get("PALPITES_PASSWORD")
 if not PALPITES_PASSWORD:
     raise RuntimeError("Defina a variável de ambiente PALPITES_PASSWORD antes de rodar o app.")
 
-RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
-if not RESEND_API_KEY:
-    raise RuntimeError("Defina a variável de ambiente RESEND_API_KEY antes de rodar o app.")
-EMAIL_FROM = os.environ.get("EMAIL_FROM", "Sinal Verde <onboarding@resend.dev>")
+SMTP_EMAIL = os.environ.get("SMTP_EMAIL")
+if not SMTP_EMAIL:
+    raise RuntimeError("Defina a variável de ambiente SMTP_EMAIL (seu Gmail) antes de rodar o app.")
+SMTP_APP_PASSWORD = os.environ.get("SMTP_APP_PASSWORD")
+if not SMTP_APP_PASSWORD:
+    raise RuntimeError("Defina a variável de ambiente SMTP_APP_PASSWORD (senha de app do Gmail) antes de rodar o app.")
 
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
 
@@ -270,22 +273,21 @@ def enviar_codigo_verificacao(email, device_id):
     conn.close()
 
     try:
-        requests.post(
-            "https://api.resend.com/emails",
-            headers={"Authorization": f"Bearer {RESEND_API_KEY}"},
-            json={
-                "from": EMAIL_FROM,
-                "to": [email],
-                "subject": "Seu código de acesso — Sinal Verde",
-                "html": (
-                    f"<p>Detectamos um login em um novo dispositivo.</p>"
-                    f"<p>Seu código de verificação é:</p>"
-                    f"<h2>{codigo}</h2>"
-                    f"<p>Esse código expira em 10 minutos. Se não foi você, ignore este email.</p>"
-                )
-            },
-            timeout=10
+        msg = MIMEText(
+            f"<p>Detectamos um login em um novo dispositivo.</p>"
+            f"<p>Seu código de verificação é:</p>"
+            f"<h2>{codigo}</h2>"
+            f"<p>Esse código expira em 10 minutos. Se não foi você, ignore este email.</p>",
+            "html"
         )
+        msg["Subject"] = "Seu código de acesso — Sinal Verde"
+        msg["From"] = SMTP_EMAIL
+        msg["To"] = email
+
+        with smtplib.SMTP("smtp.gmail.com", 587) as server:
+            server.starttls()
+            server.login(SMTP_EMAIL, SMTP_APP_PASSWORD)
+            server.sendmail(SMTP_EMAIL, [email], msg.as_string())
     except Exception as e:
         app.logger.error(f"Erro ao enviar email de verificação: {e}")
 
