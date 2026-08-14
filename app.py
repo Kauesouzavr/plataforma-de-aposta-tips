@@ -272,7 +272,7 @@ def enviar_codigo_verificacao(email, device_id):
     conn.close()
 
     try:
-        requests.post(
+        resp = requests.post(
             "https://api.brevo.com/v3/smtp/email",
             headers={
                 "api-key": BREVO_API_KEY,
@@ -292,6 +292,7 @@ def enviar_codigo_verificacao(email, device_id):
             },
             timeout=10
         )
+        app.logger.error(f"Brevo status={resp.status_code} resposta={resp.text}")
     except Exception as e:
         app.logger.error(f"Erro ao enviar email de verificação: {e}")
 
