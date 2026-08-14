@@ -707,7 +707,7 @@ def admin_reset_dispositivos():
     return redirect('/admin')
 
 
-# ---------------- LOGOUT ----------------
+# ---------------- LOGOUT test ----------------
 @app.route('/logout')
 def logout():
     session.pop('user', None)
