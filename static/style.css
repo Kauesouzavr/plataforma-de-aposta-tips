@@ -8,13 +8,13 @@
   --bg-elevated: #121712;
   --bg-card: #141a15;
   --border: #232b24;
-  --green: #39ff6a;
-  --green-dim: #1f7a3d;
+  --green: #f89c08;
+  --green-dim: #e3c817;
   --green-glow: rgba(57, 255, 106, 0.35);
   --text: #eef5ef;
   --text-muted: #8fa397;
   --text-faint: #5d6d61;
-  --danger: #ff4d4d;
+  --danger: #c1ec34;
 
   --font-display: 'Archivo Black', 'Arial Black', sans-serif;
   --font-body: 'Inter', -apple-system, 'Segoe UI', sans-serif;
