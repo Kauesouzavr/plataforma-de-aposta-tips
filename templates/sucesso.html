@@ -2,17 +2,23 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Pagamento recebido</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pagamento recebido | JV Tips</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body style="background:var(--lab-black); min-height:100vh; display:flex; align-items:center; justify-content:center;">
 
-<div class="container">
-    <div class="card">
-        <h2>Pagamento realizado com sucesso! 🎉</h2>
-        <p>Estamos confirmando seu pagamento. Se ainda não caiu automaticamente, faça login abaixo em alguns instantes:</p>
-        <a href="/login">Ir para o login</a>
-    </div>
+<div class="lab-bg-grid"></div>
+<div class="lab-bg-noise"></div>
+
+<div class="lab-glass-card" style="max-width:420px; width:90%; position:relative; z-index:2; text-align:center;">
+ <span class="corner tl"></span><span class="corner br"></span>
+ <div class="lp-logo" style="margin-bottom:24px; justify-content:center;"><span class="dot"></span>JV TIPS</div>
+ <h2 style="font-family:var(--lab-font-display); text-transform:uppercase; font-size:22px; margin:0 0 16px;">Pagamento realizado com sucesso! </h2>
+ <p style="color:var(--lab-text-muted); font-size:14px; margin-bottom:24px;">Estamos confirmando seu pagamento. Se ainda não caiu automaticamente, faça login abaixo em alguns instantes:</p>
+ <a href="/login" class="lab-btn lab-btn-primary" style="justify-content:center; width:100%;">Ir para o login</a>
 </div>
 
 </body>

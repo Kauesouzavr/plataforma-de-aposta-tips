@@ -3,94 +3,95 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jv tips</title>
+<title>Área VIP | JV Tips</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
+<div class="lab-bg-grid"></div>
+<div class="lab-bg-noise"></div>
 <div class="pk-topo">
-  <div class="lp-logo"><span class="dot"></span>SINAL VERDE — VIP</div>
-  <a href="/logout" class="pk-sair">Sair</a>
+ <div class="lp-logo"><span class="dot"></span>JV TIPS VIP</div>
+ <a href="/logout" class="pk-sair">Sair</a>
 </div>
 
 <div class="pk-wrap">
 
-  <h1 class="pk-intro-title">Bem-vindo à área VIP 🚀</h1>
-  <p class="pk-intro-sub">Assista o vídeo abaixo antes de tudo — ele explica como funciona o grupo e como usar os palpites.</p>
+ <h1 class="pk-intro-title">Bem-vindo à área VIP </h1>
+ <p class="pk-intro-sub">Assista o vídeo abaixo antes de tudo. Ele explica como funciona o grupo e como usar os palpites.</p>
 
-  {% if aulas %}
-  <div class="pk-video-wrap">
-    <video controls controlsList="nodownload" onended="marcar('{{ aulas[0].id }}')">
-      <source src="{{ url_for('video', aula_id=aulas[0].id) }}" type="video/mp4">
-      Seu navegador não suporta vídeo.
-    </video>
-  </div>
-  {% endif %}
+ {% if aulas %}
+ <div class="pk-video-wrap">
+ <video controls controlsList="nodownload" onended="marcar('{{ aulas[0].id }}')">
+ <source src="{{ url_for('video', aula_id=aulas[0].id) }}" type="video/mp4">Seu navegador não suporta vídeo.
+ </video>
+ </div>
+ {% endif %}
 
-  <div class="pk-section-label">Palpites de hoje</div>
+ <div class="pk-section-label">Palpites de hoje</div>
 
-  <div class="pk-picks-grid">
-    {% if palpites %}
-      {% for p in palpites %}
-      <div class="pk-pick-card">
-        {% if p.hot %}<div class="pk-hot">HOT 🔥</div>{% endif %}
-        <div class="pk-meta">{{ p.competicao }}</div>
-        <div class="pk-teams">{{ p.confronto }}</div>
-        <div class="pk-pick-row">
-          <div>
-            <div class="pk-market-lbl">Palpite</div>
-            <div class="pk-market-val">{{ p.mercado }}</div>
-          </div>
-          <div class="pk-odd-box">
-            <div class="lbl">Odd</div>
-            <div class="val">{{ p.odd }}</div>
-          </div>
-          <a href="{{ p.link }}" target="_blank" class="pk-bet-btn">Apostar →</a>
-        </div>
-      </div>
-      {% endfor %}
-    {% else %}
-      <p style="color: var(--text-faint); text-align:center;">Nenhum palpite publicado ainda hoje. Volte mais tarde 👀</p>
-    {% endif %}
-  </div>
+ <div class="pk-picks-grid">
+ {% if palpites %}
+ {% for p in palpites %}
+ <div class="pk-pick-card">
+ {% if p.hot %}<div class="pk-hot">HOT </div>{% endif %}
+ <div class="pk-meta">{{ p.competicao }}</div>
+ <div class="pk-teams">{{ p.confronto }}</div>
+ <div class="pk-pick-row">
+ <div>
+ <div class="pk-market-lbl">Palpite</div>
+ <div class="pk-market-val">{{ p.mercado }}</div>
+ </div>
+ <div class="pk-odd-box">
+ <div class="lbl">Odd</div>
+ <div class="val">{{ p.odd }}</div>
+ </div>
+ <a href="{{ p.link }}" target="_blank" class="pk-bet-btn">Apostar →</a>
+ </div>
+ </div>
+ {% endfor %}
+ {% else %}
+ <p style="color: var(--text-faint); text-align:center;">Nenhum palpite publicado ainda hoje. Volte mais tarde</p>
+ {% endif %}
+ </div>
 
-  <div class="pk-telegram-banner">
-    <div class="txt">
-      <strong>📢 Grupo no Telegram</strong>
-      <span>Todos os palpites em primeira mão, direto no seu celular.</span>
-    </div>
-    <span class="badge-soon">Em breve</span>
-  </div>
+ <div class="pk-telegram-banner">
+ <div class="txt">
+ <strong>Grupo no Telegram</strong>
+ <span>Todos os palpites em primeira mão, direto no seu celular.</span>
+ </div>
+ <span class="badge-soon">Em breve</span>
+ </div>
 
 </div>
 
 <script>
 function marcar(aula){
-    fetch('/marcar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({aula: aula})
-    })
+ fetch('/marcar', {
+ method: 'POST',
+ headers: { 'Content-Type': 'application/json' },
+ body: JSON.stringify({aula: aula})
+ })
 }
 
-// Marca d'água discreta com o email do usuário logado — desincentiva
+// Marca d'água discreta com o email do usuário logado. Desincentiva
 // prints/capturas compartilhadas, já que a origem fica identificável.
 (function() {
-    const email = {{ email|tojson }};
-    if (!email) return;
+ const email = {{ email|tojson }};
+ if (!email) return;
 
-    const wm = document.createElement('div');
-    wm.style.cssText = 'position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:0.06; overflow:hidden;';
+ const wm = document.createElement('div');
+ wm.style.cssText = 'position:fixed; inset:0; pointer-events:none; z-index:9999; opacity:0.06; overflow:hidden;';
 
-    for (let r = 0; r < 30; r++) {
-        const row = document.createElement('div');
-        row.style.cssText = 'white-space:nowrap; transform: rotate(-20deg); margin: 34px -200px; font-family: monospace; font-size:13px; color: #ffffff;';
-        row.textContent = (email + '    ').repeat(15);
-        wm.appendChild(row);
-    }
-    document.body.appendChild(wm);
+ for (let r = 0; r< 30; r++) {
+ const row = document.createElement('div');
+ row.style.cssText = 'white-space:nowrap; transform: rotate(-20deg); margin: 34px -200px; font-family: monospace; font-size:13px; color: #ffffff;';
+ row.textContent = (email + ' ').repeat(15);
+ wm.appendChild(row);
+ }
+ document.body.appendChild(wm);
 })();
 </script>
 

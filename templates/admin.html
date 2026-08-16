@@ -3,61 +3,63 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Admin — Sinal Verde</title>
+<title>Admin | JV Tips</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
+<div class="lab-bg-grid"></div>
+<div class="lab-bg-noise"></div>
 <div class="pk-topo">
-  <div class="lp-logo"><span class="dot"></span>SINAL VERDE — ADMIN</div>
-  <div style="display:flex; gap:14px; align-items:center;">
-    <a href="/painel/login" style="color:var(--text-muted); font-size:13px;">📋 Painel de palpites</a>
-    <a href="/admin/logout" class="pk-sair">Sair</a>
-  </div>
+ <div class="lp-logo"><span class="dot"></span>JV TIPS ADMIN</div>
+ <div style="display:flex; gap:14px; align-items:center;">
+ <a href="/painel/login" style="color:var(--text-muted); font-size:13px;">Painel de palpites</a>
+ <a href="/admin/logout" class="pk-sair">Sair</a>
+ </div>
 </div>
 
 <div class="pk-wrap">
 
-  <div class="pk-section-label">Usuários</div>
-  <table>
-    <tr>
-        <th>Email</th>
-        <th>Status</th>
-        <th>Dispositivos</th>
-        <th></th>
-    </tr>
-    {% for u in usuarios %}
-    <tr>
-        <td>{{ u[0] }}</td>
-        <td>{{ u[1] }}</td>
-        <td>{{ u[2] }} / 2</td>
-        <td>
-          <form method="POST" action="/admin/reset-dispositivos" onsubmit="return confirm('Resetar dispositivos de {{ u[0] }}?');">
-            <input type="hidden" name="email" value="{{ u[0] }}">
-            <button type="submit" style="background: var(--danger); width:auto; padding: 6px 12px; font-size:12px;">Resetar</button>
-          </form>
-        </td>
-    </tr>
-    {% endfor %}
-  </table>
+ <div class="pk-section-label">Usuários</div>
+ <table>
+ <tr>
+ <th>Email</th>
+ <th>Status</th>
+ <th>Dispositivos</th>
+ <th></th>
+ </tr>
+ {% for u in usuarios %}
+ <tr>
+ <td>{{ u[0] }}</td>
+ <td>{{ u[1] }}</td>
+ <td>{{ u[2] }} / 2</td>
+ <td>
+ <form method="POST" action="/admin/reset-dispositivos" onsubmit="return confirm('Resetar dispositivos de {{ u[0] }}?');">
+ <input type="hidden" name="email" value="{{ u[0] }}">
+ <button type="submit" style="background: var(--danger); width:auto; padding: 6px 12px; font-size:12px;">Resetar</button>
+ </form>
+ </td>
+ </tr>
+ {% endfor %}
+ </table>
 
-  <div style="height: 40px;"></div>
+ <div style="height: 40px;"></div>
 
-  <div class="pk-section-label">Progresso (aulas assistidas)</div>
-  <table>
-    <tr>
-        <th>Email</th>
-        <th>Aulas Assistidas</th>
-    </tr>
-    {% for p in progresso %}
-    <tr>
-        <td>{{ p[0] }}</td>
-        <td>{{ p[1] }}</td>
-    </tr>
-    {% endfor %}
-  </table>
+ <div class="pk-section-label">Progresso (aulas assistidas)</div>
+ <table>
+ <tr>
+ <th>Email</th>
+ <th>Aulas Assistidas</th>
+ </tr>
+ {% for p in progresso %}
+ <tr>
+ <td>{{ p[0] }}</td>
+ <td>{{ p[1] }}</td>
+ </tr>
+ {% endfor %}
+ </table>
 
 </div>
 

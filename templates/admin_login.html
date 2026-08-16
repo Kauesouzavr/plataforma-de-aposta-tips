@@ -3,24 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Admin — Sinal Verde</title>
+<title>Admin | JV Tips</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body style="background:var(--lab-black); min-height:100vh; display:flex; align-items:center; justify-content:center;">
 
-<div class="container">
-    <div class="card">
-        <h2>🔒 Acesso Admin</h2>
+<div class="lab-bg-grid"></div>
+<div class="lab-bg-noise"></div>
 
-        {% if erro %}
-            <p style="color: #ff4d4d; font-weight: bold;">{{ erro }}</p>
-        {% endif %}
+<div class="lab-glass-card" style="max-width:400px; width:90%; position:relative; z-index:2;">
+ <span class="corner tl"></span><span class="corner br"></span>
+ <div class="lp-logo" style="margin-bottom:24px;"><span class="dot"></span>JV TIPS</div>
+ <h2 style="font-family:var(--lab-font-display); text-transform:uppercase; font-size:22px; margin:0 0 20px;">Acesso Admin</h2>
 
-        <form method="POST">
-            <input type="password" name="senha" placeholder="Senha de admin" required>
-            <button type="submit">Entrar</button>
-        </form>
-    </div>
+ {% if erro %}
+ <p style="color: #ff4d4d; font-weight: bold; font-size:14px;">{{ erro }}</p>
+ {% endif %}
+
+ <form method="POST">
+ <input type="password" name="senha" placeholder="Senha de admin" required>
+ <button type="submit" class="lab-btn lab-btn-primary" style="width:100%; justify-content:center; margin-top:10px;">Entrar</button>
+ </form>
 </div>
 
 </body>

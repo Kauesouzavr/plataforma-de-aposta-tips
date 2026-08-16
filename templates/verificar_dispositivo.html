@@ -2,32 +2,37 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Verificar dispositivo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verificar dispositivo | JV Tips</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body style="background:var(--lab-black); min-height:100vh; display:flex; align-items:center; justify-content:center;">
 
-<div class="container">
-    <div class="card">
-        <h2>🔐 Novo dispositivo detectado</h2>
-        <p style="color: var(--text-muted); font-size: 14px;">
-            Enviamos um código de 6 dígitos para <strong style="color:var(--text)">{{ email }}</strong>.
-            Digite abaixo pra confirmar que é você.
-        </p>
+<div class="lab-bg-grid"></div>
+<div class="lab-bg-noise"></div>
 
-        {% if erro %}
-            <p style="color: #ff4d4d; font-weight: bold;">{{ erro }}</p>
-        {% endif %}
+<div class="lab-glass-card" style="max-width:420px; width:90%; position:relative; z-index:2;">
+ <span class="corner tl"></span><span class="corner br"></span>
+ <div class="lp-logo" style="margin-bottom:24px;"><span class="dot"></span>JV TIPS</div>
+ <h2 style="font-family:var(--lab-font-display); text-transform:uppercase; font-size:20px; margin:0 0 16px;">Novo dispositivo detectado</h2>
+ <p style="color: var(--lab-text-muted); font-size: 14px;">Enviamos um código de 6 dígitos para<strong style="color:var(--lab-text)">{{ email }}</strong>.
+ Digite abaixo pra confirmar que é você.
+ </p>
 
-        <form method="POST">
-            <input type="text" name="codigo" placeholder="Código de 6 dígitos" maxlength="6" required>
-            <button type="submit">Confirmar</button>
-        </form>
+ {% if erro %}
+ <p style="color: #ff4d4d; font-weight: bold; font-size:14px;">{{ erro }}</p>
+ {% endif %}
 
-        <form method="POST" action="/verificar-dispositivo/reenviar" style="margin-top: 10px;">
-            <button type="submit" style="background: transparent; border: 1px solid var(--border); color: var(--text-muted);">Reenviar código</button>
-        </form>
-    </div>
+ <form method="POST">
+ <input type="text" name="codigo" placeholder="Código de 6 dígitos" maxlength="6" required>
+ <button type="submit" class="lab-btn lab-btn-primary" style="width:100%; justify-content:center; margin-top:10px;">Confirmar</button>
+ </form>
+
+ <form method="POST" action="/verificar-dispositivo/reenviar" style="margin-top: 10px;">
+ <button type="submit" class="lab-btn lab-btn-ghost" style="width:100%; justify-content:center;">Reenviar código</button>
+ </form>
 </div>
 
 </body>

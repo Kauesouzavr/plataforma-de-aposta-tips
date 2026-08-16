@@ -280,9 +280,9 @@ def enviar_codigo_verificacao(email, device_id):
                 "Accept": "application/json"
             },
             json={
-                "sender": {"email": BREVO_SENDER_EMAIL, "name": "Sinal Verde"},
+                "sender": {"email": BREVO_SENDER_EMAIL, "name": "JV Tips"},
                 "to": [{"email": email}],
-                "subject": "Seu código de acesso — Sinal Verde",
+                "subject": "Seu código de acesso JV Tips",
                 "htmlContent": (
                     f"<p>Detectamos um login em um novo dispositivo.</p>"
                     f"<p>Seu código de verificação é:</p>"
@@ -707,7 +707,7 @@ def admin_reset_dispositivos():
     return redirect('/admin')
 
 
-# ---------------- LOGOUT test ----------------
+# ---------------- LOGOUT ----------------
 @app.route('/logout')
 def logout():
     session.pop('user', None)
