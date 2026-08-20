@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Área VIP | JV Tips</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -76,7 +78,8 @@ function marcar(aula){
  })
 }
 
-
+// Marca d'água discreta com o email do usuário logado. Desincentiva
+// prints/capturas compartilhadas, já que a origem fica identificável.
 (function() {
  const email = {{ email|tojson }};
  if (!email) return;

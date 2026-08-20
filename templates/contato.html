@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contato | JV Tips</title>
+<meta name="description" content="Fale com a equipe do JV Tips. Duvidas sobre assinatura, pagamento ou acesso a area VIP.">
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body style="background:var(--lab-black);">
+
+<div class="lab-bg-grid"></div>
+<div class="lab-bg-noise"></div>
+
+<nav class="lp-nav" style="position:sticky; z-index:50;">
+  <a href="/" class="lp-logo"><span class="dot"></span>JV TIPS</a>
+</nav>
+
+<div style="max-width:520px; margin:0 auto; padding:60px 5vw; position:relative; z-index:2;">
+
+  <nav aria-label="breadcrumb" style="font-family:var(--font-mono); font-size:12px; color:var(--lab-grey); margin-bottom:30px;">
+    <a href="/" style="color:var(--lab-grey);">Inicio</a> / <span style="color:var(--lab-text);">Contato</span>
+  </nav>
+
+  <h1 style="font-family:var(--lab-font-display); text-transform:uppercase; font-size:clamp(26px,4vw,36px); color:var(--lab-text); margin-bottom:14px;">Fale com a gente</h1>
+  <p style="color:var(--lab-text-muted); margin-bottom:34px;">Duvidas sobre assinatura, pagamento ou acesso. Respondemos o mais rapido possivel.</p>
+
+  <form method="POST" class="lab-glass-card" style="display:block;">
+    <span class="corner tl"></span><span class="corner br"></span>
+    <input type="text" name="nome" placeholder="Seu nome" maxlength="100" required>
+    <input type="email" name="email" placeholder="Seu email" maxlength="150" required>
+    <textarea name="mensagem" placeholder="Sua mensagem" maxlength="1000" rows="5" required
+      style="width:100%; padding:12px 14px; margin:8px 0; background:var(--bg-elevated); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:var(--font-body); font-size:15px; resize:vertical;"></textarea>
+    <button type="submit" class="lab-btn lab-btn-primary" style="width:100%; justify-content:center; margin-top:10px;">Enviar mensagem</button>
+  </form>
+
+  <p style="color:var(--lab-grey); font-size:13px; margin-top:24px; text-align:center;">
+    Prefere falar direto? <a href="https://wa.me/5524992114137" target="_blank" style="color:var(--green);">WhatsApp</a> ou
+    <a href="https://instagram.com/joaovtcarvalho" target="_blank" style="color:var(--green);">Instagram</a>
+  </p>
+</div>
+
+<footer class="lp-footer" style="position:relative; z-index:2;">
+  <div class="lp-footer-grid">
+    <div class="lp-logo"><span class="dot"></span>JV TIPS</div>
+    <div class="lp-contact">
+      <a href="/politica-de-privacidade">Privacidade</a>
+      <a href="/contato">Contato</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

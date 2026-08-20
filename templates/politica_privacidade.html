@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Politica de Privacidade | JV Tips</title>
+<meta name="description" content="Como o JV Tips coleta, usa e protege os dados dos usuarios da plataforma de analises esportivas.">
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body style="background:var(--lab-black);">
+
+<div class="lab-bg-grid"></div>
+<div class="lab-bg-noise"></div>
+
+<nav class="lp-nav" style="position:sticky; z-index:50;">
+  <a href="/" class="lp-logo"><span class="dot"></span>JV TIPS</a>
+</nav>
+
+<div style="max-width:760px; margin:0 auto; padding:60px 5vw; position:relative; z-index:2; color:var(--lab-text-muted); line-height:1.7;">
+
+  <nav aria-label="breadcrumb" style="font-family:var(--font-mono); font-size:12px; color:var(--lab-grey); margin-bottom:30px;">
+    <a href="/" style="color:var(--lab-grey);">Inicio</a> / <span style="color:var(--lab-text);">Politica de Privacidade</span>
+  </nav>
+
+  <h1 style="font-family:var(--lab-font-display); text-transform:uppercase; font-size:clamp(26px,4vw,40px); color:var(--lab-text); margin-bottom:30px;">Politica de Privacidade</h1>
+
+  <p>Ultima atualizacao: agosto de 2026</p>
+
+  <h2 style="color:var(--lab-text); font-size:18px; margin-top:34px;">1. Quais dados coletamos</h2>
+  <p>Coletamos o email e a senha (armazenada com hash de seguranca, nunca em texto puro) que voce informa no cadastro, alem de dados do pagamento processados diretamente pelo Mercado Pago. Nao temos acesso aos dados completos do seu cartao.</p>
+
+  <h2 style="color:var(--lab-text); font-size:18px; margin-top:34px;">2. Como usamos seus dados</h2>
+  <p>Usamos seu email para: autenticar seu login, confirmar pagamentos, enviar codigos de verificacao quando voce acessa de um dispositivo novo, e enviar comunicados sobre sua assinatura.</p>
+
+  <h2 style="color:var(--lab-text); font-size:18px; margin-top:34px;">3. Com quem compartilhamos</h2>
+  <p>Compartilhamos dados apenas com os provedores necessarios para o funcionamento do servico: Mercado Pago (pagamentos), Supabase (banco de dados) e Brevo (envio de emails). Nenhum dado e vendido a terceiros.</p>
+
+  <h2 style="color:var(--lab-text); font-size:18px; margin-top:34px;">4. Seus direitos</h2>
+  <p>Voce pode solicitar a exclusao da sua conta e dos seus dados a qualquer momento, entrando em contato pelo nosso <a href="/contato" style="color:var(--green);">canal de contato</a>.</p>
+
+  <h2 style="color:var(--lab-text); font-size:18px; margin-top:34px;">5. Seguranca</h2>
+  <p>Aplicamos senha com hash, limite de dispositivos por conta e verificacao por email em novos acessos para proteger sua conta contra uso indevido.</p>
+
+  <h2 style="color:var(--lab-text); font-size:18px; margin-top:34px;">6. Contato</h2>
+  <p>Duvidas sobre esta politica podem ser enviadas pela nossa <a href="/contato" style="color:var(--green);">pagina de contato</a>.</p>
+
+</div>
+
+<footer class="lp-footer" style="position:relative; z-index:2;">
+  <div class="lp-footer-grid">
+    <div class="lp-logo"><span class="dot"></span>JV TIPS</div>
+    <div class="lp-contact">
+      <a href="/politica-de-privacidade">Privacidade</a>
+      <a href="/contato">Contato</a>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

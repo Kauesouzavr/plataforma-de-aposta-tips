@@ -130,9 +130,81 @@ AULAS_POR_ID = {a["id"]: a for a in AULAS}
 
 
 # ---------------- HOME ----------------
+@app.context_processor
+def injetar_globais():
+    return {"BASE_URL": BASE_URL}
+
+
 @app.route('/')
 def home():
     return render_template('index.html')
+
+
+# ---------------- SEO / ARQUIVOS TECNICOS ----------------
+@app.route('/robots.txt')
+def robots_txt():
+    conteudo = (
+        "User-agent: *\n"
+        "Disallow: /admin\n"
+        "Disallow: /painel\n"
+        "Disallow: /curso\n"
+        "Disallow: /verificar-dispositivo\n"
+        "Allow: /\n"
+        f"Sitemap: {BASE_URL}/sitemap.xml\n"
+    )
+    return conteudo, 200, {"Content-Type": "text/plain; charset=utf-8"}
+
+
+@app.route('/sitemap.xml')
+def sitemap_xml():
+    paginas = ["/", "/login", "/politica-de-privacidade", "/contato"]
+    urls = "".join(f"<url><loc>{BASE_URL}{p}</loc></url>" for p in paginas)
+    conteudo = f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>'
+    return conteudo, 200, {"Content-Type": "application/xml; charset=utf-8"}
+
+
+# ---------------- PAGINAS INSTITUCIONAIS ----------------
+@app.route('/politica-de-privacidade')
+def politica_privacidade():
+    return render_template('politica_privacidade.html')
+
+
+@app.route('/contato', methods=['GET', 'POST'])
+def contato():
+    if request.method == 'POST':
+        nome = request.form.get('nome', '').strip()[:100]
+        email_contato = request.form.get('email', '').strip()[:150]
+        mensagem = request.form.get('mensagem', '').strip()[:1000]
+
+        if nome and email_contato and mensagem:
+            try:
+                requests.post(
+                    "https://api.brevo.com/v3/smtp/email",
+                    headers={
+                        "api-key": BREVO_API_KEY,
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    json={
+                        "sender": {"email": BREVO_SENDER_EMAIL, "name": "JV Tips - Contato"},
+                        "to": [{"email": BREVO_SENDER_EMAIL}],
+                        "replyTo": {"email": email_contato, "name": nome},
+                        "subject": f"Nova mensagem de contato: {nome}",
+                        "htmlContent": f"<p><strong>Nome:</strong> {nome}</p><p><strong>Email:</strong> {email_contato}</p><p><strong>Mensagem:</strong></p><p>{mensagem}</p>"
+                    },
+                    timeout=10
+                )
+            except Exception as e:
+                app.logger.error(f"Erro ao enviar mensagem de contato: {e}")
+
+            return redirect('/contato/obrigado')
+
+    return render_template('contato.html')
+
+
+@app.route('/contato/obrigado')
+def contato_obrigado():
+    return render_template('contato_obrigado.html')
 
 
 # ---------------- REGISTRO ----------------
@@ -712,6 +784,17 @@ def admin_reset_dispositivos():
 def logout():
     session.pop('user', None)
     return redirect('/')
+
+
+# ---------------- ERROS ----------------
+@app.errorhandler(404)
+def erro_404(e):
+    return render_template('404.html'), 404
+
+
+@app.errorhandler(500)
+def erro_500(e):
+    return render_template('500.html'), 500
 
 
 if __name__ == '__main__':

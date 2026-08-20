@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Painel de Palpites</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -23,11 +25,11 @@
 
  <div class="lp-cadastro-box" style="max-width: none; margin-bottom: 50px;">
  <form method="POST">
- <input type="text" name="competicao" placeholder="Competição (ex: Brasileirão Série A)" required>
- <input type="text" name="confronto" placeholder="Confronto (ex: Flamengo x Palmeiras)" required>
- <input type="text" name="mercado" placeholder="Palpite (ex: Mais de 2.5 gols)" required>
- <input type="text" name="odd" placeholder="Odd (ex: 1.85)" required>
- <input type="url" name="link" placeholder="Link da casa de apostas (https://...)" required>
+ <input type="text" name="competicao" placeholder="Competição (ex: Brasileirão Série A)" maxlength="100" required>
+ <input type="text" name="confronto" placeholder="Confronto (ex: Flamengo x Palmeiras)" maxlength="100" required>
+ <input type="text" name="mercado" placeholder="Palpite (ex: Mais de 2.5 gols)" maxlength="100" required>
+ <input type="text" name="odd" placeholder="Odd (ex: 1.85)" maxlength="10" required>
+ <input type="url" name="link" placeholder="Link da casa de apostas (https://...)" maxlength="500" required>
  <label style="display:flex; align-items:center; gap:8px; color:var(--text-muted); font-size:14px; margin:12px 0;">
  <input type="checkbox" name="hot" style="width:auto; margin:0;">Marcar como destaque ( HOT)
  </label>

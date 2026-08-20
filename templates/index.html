@@ -4,9 +4,36 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>JV Tips | Análises Esportivas VIP</title>
+<meta name="description" content="Analise tecnica e gestao de risco para apostas esportivas. Palpites diarios com criterio, sem achismo. Acesso VIP a partir de R$29,90/mes.">
+<link rel="canonical" href="{{ BASE_URL }}/">
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="JV Tips | Analises Esportivas VIP">
+<meta property="og:description" content="Analise tecnica e gestao de risco para apostas esportivas. Palpites diarios com criterio.">
+<meta property="og:image" content="{{ BASE_URL }}/static/social-share.svg">
+<meta property="og:url" content="{{ BASE_URL }}/">
+<meta name="twitter:card" content="summary_large_image">
+
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "Como funciona o acesso VIP?", "acceptedAnswer": {"@type": "Answer", "text": "Apos o pagamento aprovado, voce recebe acesso imediato a area exclusiva com os palpites publicados diariamente."}},
+    {"@type": "Question", "name": "Qual a forma de pagamento?", "acceptedAnswer": {"@type": "Answer", "text": "O pagamento e processado com seguranca pelo Mercado Pago, aceitando cartao, pix e boleto."}},
+    {"@type": "Question", "name": "Posso cancelar quando quiser?", "acceptedAnswer": {"@type": "Answer", "text": "Sim, a assinatura e mensal e sem fidelidade. Voce pode cancelar quando quiser."}},
+    {"@type": "Question", "name": "Os palpites tem garantia de lucro?", "acceptedAnswer": {"@type": "Answer", "text": "Nao. Apostas esportivas envolvem risco financeiro real. Oferecemos analise e conteudo educacional, sem garantia de resultado."}},
+    {"@type": "Question", "name": "Posso usar minha conta em mais de um aparelho?", "acceptedAnswer": {"@type": "Answer", "text": "Sim, ate 2 dispositivos por conta. Um dispositivo novo precisa de confirmacao por codigo enviado ao seu email."}}
+  ]
+}
+</script>
 </head>
 <body class="lab-page lab-intro-active">
 
@@ -31,13 +58,13 @@
 <div class="lab-cursor-dot" id="cursorDot"></div>
 <div class="lab-cursor-ring" id="cursorRing"></div>
 
-<nav class="lp-nav" style="position:sticky; z-index:50;">
- <div class="lp-logo"><span class="dot"></span>JV TIPS</div>
+<nav class="lp-nav" style="position:sticky; z-index:50; justify-content:center; gap:40px;">
  <div class="lp-nav-links">
  <a href="#inicio">Início</a>
  <a href="#resultados">Resultados</a>
  <a href="#metodo">Método</a>
  <a href="#planos">Planos</a>
+ <a href="#faq">FAQ</a>
  </div>
  <a href="#cadastro" class="lp-vip-btn">Área VIP</a>
 </nav>
@@ -49,18 +76,19 @@
  <div class="lab-blob lab-blob-3"></div>
  </div>
 
- <div class="lab-hero-eyebrow"><span class="blip"></span>Sistema de análise ativo, laboratório de sinais</div>
-
+ <div class="lab-hero-center">
  <h1 class="lab-mesh-title" id="meshTitle">
- <span class="lab-word" style="animation-delay:.05s">JV</span><br>
- <span class="lab-word" style="animation-delay:.2s">Tips.</span>
+ <div class="gsap-line">Pare de chutar,</div>
+ <div class="gsap-line">Comece a analisar.</div>
  </h1>
+
+ <p class="lab-hero-strong">O único sistema feito para quem aposta com critério.</p>
 
  <p class="lab-hero-sub">Análise técnica, gestão de risco e critério. sem achismo e sem "chute do dia". Você recebe o sinal, decide com clareza.</p>
 
  <div class="lab-hero-actions">
- <a href="#cadastro" class="lab-btn lab-btn-primary">Quero fazer parte do VIP</a>
- <a href="#resultados" class="lab-btn lab-btn-ghost">Ver resultados</a>
+ <a href="#cadastro" class="lab-btn lab-btn-primary" data-magnet>Quero fazer parte do VIP</a>
+ <a href="#resultados" class="lab-btn lab-btn-ghost" data-magnet>Ver resultados</a>
  </div>
 
  <div class="lab-stat-row">
@@ -68,37 +96,12 @@
  <div class="lab-stat"><div class="n">78,6%</div><div class="l">taxa de acerto</div></div>
  <div class="lab-stat"><div class="n">+384</div><div class="l">membros VIP</div></div>
  </div>
-
- <div class="lab-tilt-wrap lab-globe-wrap">
- <div class="lab-tilt" id="globeTilt">
- <div class="lab-orbit-scene">
- <div>
- <div class="lab-ball-wrap"><div class="lab-ball basquete"></div></div>
- <div class="lab-ball-label">Basquete</div>
- </div>
- <div>
- <div class="lab-ball-wrap"><div class="lab-ball futebol"></div></div>
- <div class="lab-ball-label">Futebol</div>
- </div>
- <div>
- <div class="lab-ball-wrap"><div class="lab-ball ficha"></div></div>
- <div class="lab-ball-label">VIP</div>
- </div>
- </div>
- </div>
  </div>
 
- <div class="lab-floating-badge" style="top:18%; left:2vw; animation-delay:.3s;">
- <span class="dot-ok"></span> +384 MEMBROS ATIVOS
- </div>
- <div class="lab-floating-badge" style="bottom:16%; left:8vw; animation-delay:1.1s;">ROI 18,7% MÉDIO
- </div>
-
- <span class="lab-micro" style="top:24px; right:5vw;">LAT -22.9 / LON -43.2</span>
- <span class="lab-micro" style="bottom:24px; right:5vw;">STATUS: ONLINE</span>
 </section>
 
-<section class="lab-section" id="resultados">
+<section class="lab-section lab-pin-section" id="resultados">
+ <div class="lab-pin-inner">
  <div class="lab-label lab-reveal">Dados em tempo real</div>
  <h2 class="lab-heading lab-reveal">Resultados reais</h2>
 
@@ -106,23 +109,28 @@
  <div class="lab-card lab-reveal">
  <span class="corner tl"></span><span class="corner br"></span>
  <div class="lbl" style="font-family:var(--font-mono); font-size:11px; color:var(--lab-grey); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Lucro acumulado</div>
- <div class="val" style="font-family:var(--font-mono); font-size:32px; font-weight:700; color:var(--green);">R$ 100.254,37</div>
+ <div class="val" data-counter data-target="100254" data-prefix="R$ " data-decimals="2" style="font-family:var(--font-mono); font-size:32px; font-weight:700; color:var(--green);">R$ 0,00</div>
  <div class="sub" style="font-size:12px; color:var(--lab-grey); margin-top:6px;">12 meses de resultados</div>
  </div>
  <div class="lab-card lab-reveal">
  <span class="corner tl"></span><span class="corner br"></span>
  <div class="lbl" style="font-family:var(--font-mono); font-size:11px; color:var(--lab-grey); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Taxa de acerto</div>
- <div class="val" style="font-family:var(--font-mono); font-size:32px; font-weight:700; color:var(--lab-gold-soft);">78,6%</div>
+ <div class="val" data-counter data-target="78.6" data-suffix="%" data-decimals="1" style="font-family:var(--font-mono); font-size:32px; font-weight:700; color:var(--lab-gold-soft);">0%</div>
  <div class="sub" style="font-size:12px; color:var(--lab-grey); margin-top:6px;">média geral</div>
  </div>
  <div class="lab-card lab-reveal">
  <span class="corner tl"></span><span class="corner br"></span>
  <div class="lbl" style="font-family:var(--font-mono); font-size:11px; color:var(--lab-grey); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">ROI médio</div>
- <div class="val" style="font-family:var(--font-mono); font-size:32px; font-weight:700; color:var(--green);">18,7%</div>
+ <div class="val" data-counter data-target="18.7" data-suffix="%" data-decimals="1" style="font-family:var(--font-mono); font-size:32px; font-weight:700; color:var(--green);">0%</div>
  <div class="sub" style="font-size:12px; color:var(--lab-grey); margin-top:6px;">sobre o valor investido</div>
  </div>
  </div>
 
+ <div class="lab-pin-progress"><div class="lab-pin-progress-fill" id="pinProgressFill"></div></div>
+ </div>
+</section>
+
+<section class="lab-section" style="padding-top:60px;">
  <div class="lp-sport-bars lab-reveal">
  <div class="lp-sport-row">
  <div class="name">Futebol</div>
@@ -147,7 +155,7 @@
  </div>
 
  <div class="lp-more-results lab-reveal">
- <a href="https://instagram.com/joaovtcarvalho" target="_blank" class="lab-btn lab-btn-ghost">Ver mais resultados →</a>
+ <a href="https://instagram.com/joaovtcarvalho" target="_blank" class="lab-btn lab-btn-ghost" data-magnet>Ver mais resultados →</a>
  </div>
 </section>
 
@@ -171,7 +179,7 @@
  <div class="lp-path-step"><span class="n">→</span>Liberdade financeira</div>
  </div>
 
- <a href="#cadastro" class="lab-btn lab-btn-primary">Conhecer o método</a>
+ <a href="#cadastro" class="lab-btn lab-btn-primary" data-magnet>Conhecer o método</a>
  </div>
  </div>
 </section>
@@ -233,12 +241,49 @@
  <div class="lp-login-link lab-reveal" style="text-align:center;">Já é membro VIP? <a href="/login">Entrar</a></div>
 </section>
 
+<section class="lab-section" id="faq" style="max-width:760px; margin:0 auto;">
+ <div class="lab-label lab-reveal" style="justify-content:center; display:flex;">Duvidas</div>
+ <h2 class="lab-heading lab-reveal" style="text-align:center;">Perguntas frequentes</h2>
+
+ <div class="lab-card lab-reveal" style="margin-bottom:14px;">
+ <span class="corner tl"></span><span class="corner br"></span>
+ <h3 style="color:var(--lab-text); font-size:16px; margin:0 0 8px;">Como funciona o acesso VIP?</h3>
+ <p style="color:var(--lab-text-muted); margin:0;">Apos o pagamento aprovado, voce recebe acesso imediato a area exclusiva com os palpites publicados diariamente.</p>
+ </div>
+
+ <div class="lab-card lab-reveal" style="margin-bottom:14px;">
+ <span class="corner tl"></span><span class="corner br"></span>
+ <h3 style="color:var(--lab-text); font-size:16px; margin:0 0 8px;">Qual a forma de pagamento?</h3>
+ <p style="color:var(--lab-text-muted); margin:0;">O pagamento e processado com seguranca pelo Mercado Pago, aceitando cartao, pix e boleto.</p>
+ </div>
+
+ <div class="lab-card lab-reveal" style="margin-bottom:14px;">
+ <span class="corner tl"></span><span class="corner br"></span>
+ <h3 style="color:var(--lab-text); font-size:16px; margin:0 0 8px;">Posso cancelar quando quiser?</h3>
+ <p style="color:var(--lab-text-muted); margin:0;">Sim, a assinatura e mensal e sem fidelidade. Voce pode cancelar quando quiser.</p>
+ </div>
+
+ <div class="lab-card lab-reveal" style="margin-bottom:14px;">
+ <span class="corner tl"></span><span class="corner br"></span>
+ <h3 style="color:var(--lab-text); font-size:16px; margin:0 0 8px;">Os palpites tem garantia de lucro?</h3>
+ <p style="color:var(--lab-text-muted); margin:0;">Nao. Apostas esportivas envolvem risco financeiro real. Oferecemos analise e conteudo educacional, sem garantia de resultado.</p>
+ </div>
+
+ <div class="lab-card lab-reveal">
+ <span class="corner tl"></span><span class="corner br"></span>
+ <h3 style="color:var(--lab-text); font-size:16px; margin:0 0 8px;">Posso usar minha conta em mais de um aparelho?</h3>
+ <p style="color:var(--lab-text-muted); margin:0;">Sim, ate 2 dispositivos por conta. Um dispositivo novo precisa de confirmacao por codigo enviado ao seu email.</p>
+ </div>
+</section>
+
 <footer class="lp-footer lab-reveal" style="position:relative; z-index:2;">
  <div class="lp-footer-grid">
  <div class="lp-logo"><span class="dot"></span>JV TIPS</div>
  <div class="lp-contact">
  <a href="https://instagram.com/joaovtcarvalho" target="_blank"> @joaovtcarvalho</a>
  <a href="https://wa.me/5524992114137" target="_blank">WhatsApp</a>
+ <a href="/contato">Contato</a>
+ <a href="/politica-de-privacidade">Privacidade</a>
  </div>
  </div>
  <div class="lp-disclaimer">Apostas esportivas envolvem risco financeiro. Este serviço oferece análises e conteúdo educacional, sem garantia de lucro. Proibido para menores de 18 anos. Aposte com responsabilidade.
@@ -342,19 +387,6 @@
 })();
 
 (function() {
- const wrap = document.querySelector('.lab-globe-wrap');
- const tilt = document.getElementById('globeTilt');
- if (!wrap || !tilt) return;
- wrap.addEventListener('mousemove', (e) => {
- const rect = wrap.getBoundingClientRect();
- const px = (e.clientX - rect.left) / rect.width - 0.5;
- const py = (e.clientY - rect.top) / rect.height - 0.5;
- tilt.style.setProperty('--rx', (px * 14) + 'deg');
- tilt.style.setProperty('--ry', (-py * 14) + 'deg');
- });
-})();
-
-(function() {
  const toggle = document.getElementById('planToggle');
  if (!toggle) return;
  const pill = document.getElementById('togglePill');
@@ -370,16 +402,64 @@
 })();
 
 (function() {
- const els = document.querySelectorAll('.lab-reveal');
- const obs = new IntersectionObserver((entries) => {
- entries.forEach(en => {
- if (en.isIntersecting) {
- en.target.classList.add('in-view');
- obs.unobserve(en.target);
+ if (typeof gsap === 'undefined') return;
+ gsap.registerPlugin(ScrollTrigger);
+
+ document.querySelectorAll('.gsap-line').forEach(line => {
+ const words = line.textContent.split(' ');
+ line.innerHTML = words.map(word =>
+ `<span class="gsap-word">${word.split('').map(c => `<span class="gsap-char">${c}</span>`).join('')}</span>`
+ ).join(' ');
+ gsap.set(line.querySelectorAll('.gsap-char'), { yPercent: 110 });
+ });
+
+ const heroTl = gsap.timeline({ delay: 0.2 });
+ heroTl.to('.gsap-char', { yPercent: 0, duration: 0.9, stagger: 0.025, ease: 'power4.out' });
+
+ gsap.utils.toArray('.lab-reveal').forEach(el => {
+ gsap.fromTo(el, { opacity: 0, y: 26 }, {
+ opacity: 1, y: 0, duration: 0.7, ease: 'power3.out',
+ scrollTrigger: { trigger: el, start: 'top 88%' }
+ });
+ });
+
+ document.querySelectorAll('[data-counter]').forEach(el => {
+ el.dataset.formatted = '';
+ });
+
+ ScrollTrigger.create({
+ trigger: '.lab-pin-section',
+ start: 'top top',
+ end: '+=1200',
+ pin: true,
+ onUpdate: (self) => {
+ const p = self.progress;
+ const fill = document.getElementById('pinProgressFill');
+ if (fill) fill.style.width = (p * 100) + '%';
+
+ document.querySelectorAll('[data-counter]').forEach(el => {
+ const target = parseFloat(el.dataset.target);
+ const prefix = el.dataset.prefix || '';
+ const suffix = el.dataset.suffix || '';
+ const decimals = parseInt(el.dataset.decimals || '0');
+ const val = target * p;
+ const formatted = val.toLocaleString('pt-BR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+ el.textContent = prefix + formatted + suffix;
+ });
  }
  });
- }, { threshold: 0.15 });
- els.forEach(el => obs.observe(el));
+
+ document.querySelectorAll('[data-magnet]').forEach(btn => {
+ btn.addEventListener('mousemove', (e) => {
+ const rect = btn.getBoundingClientRect();
+ const x = e.clientX - rect.left - rect.width / 2;
+ const y = e.clientY - rect.top - rect.height / 2;
+ gsap.to(btn, { x: x * 0.25, y: y * 0.25, duration: 0.3 });
+ });
+ btn.addEventListener('mouseleave', () => {
+ gsap.to(btn, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.4)' });
+ });
+ });
 })();
 </script>
 
