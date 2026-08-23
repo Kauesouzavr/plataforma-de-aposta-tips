@@ -38,18 +38,18 @@
 <body class="lab-page lab-intro-active">
 
 <div id="labIntro">
- <div class="lab-intro-panel left"></div>
- <div class="lab-intro-panel right"></div>
- <div class="lab-intro-content">
- <div class="lab-intro-eyebrow">// iniciando laboratório de sinais</div>
- <h2 class="lab-intro-title">
- <span class="lab-word" style="animation-delay:.1s">JV</span>
- <span class="lab-word" style="animation-delay:.25s">Tips</span>
- </h2>
- <div class="lab-intro-counter" id="introCounter">0%</div>
- <div class="lab-intro-bar"><div class="lab-intro-bar-fill" id="introBarFill"></div></div>
- </div>
- <div class="lab-intro-skip" id="introSkip">Pular intro →</div>
+  <div class="lab-intro-panel left"></div>
+  <div class="lab-intro-panel right"></div>
+  <div class="lab-intro-content">
+    <div class="lab-intro-eyebrow">// iniciando laboratório de sinais</div>
+    <h2 class="lab-intro-title">
+      <span class="lab-word" style="animation-delay:.1s">JV</span>
+      <span class="lab-word" style="animation-delay:.25s">Tips</span>
+    </h2>
+    <div class="lab-intro-counter" id="introCounter">0%</div>
+    <div class="lab-intro-bar"><div class="lab-intro-bar-fill" id="introBarFill"></div></div>
+  </div>
+  <div class="lab-intro-skip" id="introSkip">Pular intro →</div>
 </div>
 
 <div class="lab-bg-grid"></div>
@@ -78,8 +78,8 @@
 
  <div class="lab-hero-center">
  <h1 class="lab-mesh-title" id="meshTitle">
- <div class="gsap-line">Pare de chutar,</div>
- <div class="gsap-line">Comece a analisar.</div>
+ <span class="type-line" id="typeLine1"></span>
+ <span class="type-line" id="typeLine2"></span>
  </h1>
 
  <p class="lab-hero-strong">O único sistema feito para quem aposta com critério.</p>
@@ -97,7 +97,6 @@
  <div class="lab-stat"><div class="n">+384</div><div class="l">membros VIP</div></div>
  </div>
  </div>
-
 </section>
 
 <section class="lab-section lab-pin-section" id="resultados">
@@ -173,10 +172,10 @@
  <p style="color:var(--lab-text-muted); margin-bottom:26px;">Hoje compartilho esse método com quem quer apostar com critério, não com sorte.</p>
 
  <div class="lp-path" style="margin-bottom:30px;">
- <div class="lp-path-step"><span class="n">→</span>Disciplina</div>
- <div class="lp-path-step"><span class="n">→</span>Estudo do mercado</div>
- <div class="lp-path-step"><span class="n">→</span>Estratégia de resultados</div>
- <div class="lp-path-step"><span class="n">→</span>Liberdade financeira</div>
+ <div class="lp-path-step"><span class="n">→</span> Disciplina</div>
+ <div class="lp-path-step"><span class="n">→</span> Estudo do mercado</div>
+ <div class="lp-path-step"><span class="n">→</span> Estratégia de resultados</div>
+ <div class="lp-path-step"><span class="n">→</span> Liberdade financeira</div>
  </div>
 
  <a href="#cadastro" class="lab-btn lab-btn-primary" data-magnet>Conhecer o método</a>
@@ -208,9 +207,9 @@
  <div class="lab-price-value">R$ 29,90</div>
  <div class="lab-price-period">cobrado todo mês</div>
 
- <div class="lab-plan-feature"><span class="check"></span>Palpites diários no VIP</div>
- <div class="lab-plan-feature"><span class="check"></span>Marca d'água de segurança</div>
- <div class="lab-plan-feature"><span class="check"></span>Suporte via WhatsApp</div>
+ <div class="lab-plan-feature"><span class="check">✓</span> Palpites diários no VIP</div>
+ <div class="lab-plan-feature"><span class="check">✓</span> Marca d'água de segurança</div>
+ <div class="lab-plan-feature"><span class="check">✓</span> Suporte via WhatsApp</div>
 
  <form action="/registrar" method="POST" style="margin-top:24px;">
  <input type="email" name="email" placeholder="Seu email" required>
@@ -227,9 +226,9 @@
  <div class="lab-price-value">R$ 100,00</div>
  <div class="lab-price-period">cobrado uma vez por ano</div>
 
- <div class="lab-plan-feature"><span class="check"></span>Tudo do plano mensal</div>
- <div class="lab-plan-feature"><span class="check"></span>Economia no fechado</div>
- <div class="lab-plan-feature"><span class="check"></span>Prioridade no suporte</div>
+ <div class="lab-plan-feature"><span class="check">✓</span> Tudo do plano mensal</div>
+ <div class="lab-plan-feature"><span class="check">✓</span> Economia no fechado</div>
+ <div class="lab-plan-feature"><span class="check">✓</span> Prioridade no suporte</div>
 
  <button disabled class="lab-btn lab-btn-ghost" style="width:100%; justify-content:center; margin-top:24px; opacity:.5; cursor:default;">Em breve</button>
  </div>
@@ -292,6 +291,112 @@
 
 <script>
 (function() {
+ const line1El = document.getElementById('typeLine1');
+ const line2El = document.getElementById('typeLine2');
+ if (!line1El || !line2El) return;
+
+ const linha1 = 'Pare de chutar,';
+ const linha2Antes = 'Comece a ';
+ const linha2Destaque = 'analisar';
+ const linha2Depois = '.';
+ const linha2Completa = linha2Antes + linha2Destaque + linha2Depois;
+
+ const VELOCIDADE_DIGITAR = 95;
+ const VELOCIDADE_APAGAR = 40;
+ const PAUSA_DEPOIS_DE_DIGITAR = 2800;
+ const PAUSA_ANTES_DE_REPETIR = 600;
+
+ function cicloCompleto() {
+ const cursor = document.createElement('span');
+ cursor.className = 'type-cursor';
+ line1El.innerHTML = '';
+ line2El.innerHTML = '';
+ line1El.appendChild(cursor);
+
+ let i = 0;
+ function digitarLinha1() {
+ if (i < linha1.length) {
+ cursor.insertAdjacentText('beforebegin', linha1[i]);
+ i++;
+ setTimeout(digitarLinha1, VELOCIDADE_DIGITAR);
+ } else {
+ line1El.removeChild(cursor);
+ setTimeout(digitarLinha2, VELOCIDADE_DIGITAR);
+ }
+ }
+
+ let j = 0;
+ function digitarLinha2() {
+ line2El.appendChild(cursor);
+
+ function passo() {
+ if (j < linha2Completa.length) {
+ const charPos = j;
+ if (charPos < linha2Antes.length) {
+ line2El.insertBefore(document.createTextNode(linha2Completa[charPos]), cursor);
+ } else if (charPos < linha2Antes.length + linha2Destaque.length) {
+ let spanDestaque = line2El.querySelector('.accent');
+ if (!spanDestaque) {
+ spanDestaque = document.createElement('span');
+ spanDestaque.className = 'accent';
+ line2El.insertBefore(spanDestaque, cursor);
+ }
+ spanDestaque.textContent += linha2Completa[charPos];
+ } else {
+ line2El.insertBefore(document.createTextNode(linha2Completa[charPos]), cursor);
+ }
+ j++;
+ setTimeout(passo, VELOCIDADE_DIGITAR);
+ } else {
+ setTimeout(apagarLinha2, PAUSA_DEPOIS_DE_DIGITAR);
+ }
+ }
+ passo();
+ }
+
+ function apagarLinha2() {
+ if (j > 0) {
+ j--;
+ let novoTexto = linha2Completa.slice(0, j);
+ line2El.innerHTML = '';
+ const antes = novoTexto.slice(0, linha2Antes.length);
+ const meio = novoTexto.slice(linha2Antes.length, linha2Antes.length + linha2Destaque.length);
+ const depois = novoTexto.slice(linha2Antes.length + linha2Destaque.length);
+
+ if (antes) line2El.appendChild(document.createTextNode(antes));
+ if (meio) {
+ const span = document.createElement('span');
+ span.className = 'accent';
+ span.textContent = meio;
+ line2El.appendChild(span);
+ }
+ if (depois) line2El.appendChild(document.createTextNode(depois));
+ line2El.appendChild(cursor);
+
+ setTimeout(apagarLinha2, VELOCIDADE_APAGAR);
+ } else {
+ setTimeout(apagarLinha1, VELOCIDADE_APAGAR * 4);
+ }
+ }
+
+ function apagarLinha1() {
+ if (i > 0) {
+ i--;
+ line1El.innerHTML = linha1.slice(0, i);
+ line1El.appendChild(cursor);
+ setTimeout(apagarLinha1, VELOCIDADE_APAGAR);
+ } else {
+ setTimeout(cicloCompleto, PAUSA_ANTES_DE_REPETIR);
+ }
+ }
+
+ digitarLinha1();
+ }
+
+ cicloCompleto();
+})();
+
+(function() {
  const intro = document.getElementById('labIntro');
  const counter = document.getElementById('introCounter');
  const bar = document.getElementById('introBarFill');
@@ -320,7 +425,7 @@
  pct = Math.min(100, pct + (Math.random() * 8 + 4));
  counter.textContent = Math.floor(pct) + '%';
  bar.style.width = pct + '%';
- if (pct< 100) {
+ if (pct < 100) {
  setTimeout(tick, 140);
  } else {
  setTimeout(finishIntro, 400);
@@ -359,18 +464,21 @@
 })();
 
 (function() {
- const title = document.getElementById('meshTitle');
- if (!title) return;
- title.addEventListener('mousemove', (e) => {
- const rect = title.getBoundingClientRect();
- const x = ((e.clientX - rect.left) / rect.width) * 100;
- const y = ((e.clientY - rect.top) / rect.height) * 100;
- title.style.setProperty('--mx', x + '%');
- title.style.setProperty('--my', y + '%');
- });
-})();
+ if (typeof gsap === 'undefined') return;
 
-(function() {
+ try {
+ gsap.registerPlugin(ScrollTrigger);
+ } catch (e) {
+ console.error('ScrollTrigger falhou ao registrar:', e);
+ }
+
+ gsap.utils.toArray('.lab-reveal').forEach(el => {
+ gsap.fromTo(el, { opacity: 0, y: 26 }, {
+ opacity: 1, y: 0, duration: 0.7, ease: 'power3.out',
+ scrollTrigger: { trigger: el, start: 'top 88%' }
+ });
+ });
+
  document.querySelectorAll('[data-tilt]').forEach(card => {
  card.addEventListener('mousemove', (e) => {
  const rect = card.getBoundingClientRect();
@@ -403,25 +511,6 @@
 
 (function() {
  if (typeof gsap === 'undefined') return;
- gsap.registerPlugin(ScrollTrigger);
-
- document.querySelectorAll('.gsap-line').forEach(line => {
- const words = line.textContent.split(' ');
- line.innerHTML = words.map(word =>
- `<span class="gsap-word">${word.split('').map(c => `<span class="gsap-char">${c}</span>`).join('')}</span>`
- ).join(' ');
- gsap.set(line.querySelectorAll('.gsap-char'), { yPercent: 110 });
- });
-
- const heroTl = gsap.timeline({ delay: 0.2 });
- heroTl.to('.gsap-char', { yPercent: 0, duration: 0.9, stagger: 0.025, ease: 'power4.out' });
-
- gsap.utils.toArray('.lab-reveal').forEach(el => {
- gsap.fromTo(el, { opacity: 0, y: 26 }, {
- opacity: 1, y: 0, duration: 0.7, ease: 'power3.out',
- scrollTrigger: { trigger: el, start: 'top 88%' }
- });
- });
 
  document.querySelectorAll('[data-counter]').forEach(el => {
  el.dataset.formatted = '';
