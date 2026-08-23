@@ -30,6 +30,7 @@
 
   <form method="POST" class="lab-glass-card" style="display:block;">
     <span class="corner tl"></span><span class="corner br"></span>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="text" name="nome" placeholder="Seu nome" maxlength="100" required>
     <input type="email" name="email" placeholder="Seu email" maxlength="150" required>
     <textarea name="mensagem" placeholder="Sua mensagem" maxlength="1000" rows="5" required

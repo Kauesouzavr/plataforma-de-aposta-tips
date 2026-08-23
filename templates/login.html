@@ -25,6 +25,7 @@
  {% endif %}
 
  <form method="POST" action="/login">
+ <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
  <input type="email" name="email" placeholder="Email" required>
  <input type="password" name="senha" placeholder="Senha" required>
  <button type="submit" class="lab-btn lab-btn-primary" style="width:100%; justify-content:center; margin-top:10px;">Entrar</button>

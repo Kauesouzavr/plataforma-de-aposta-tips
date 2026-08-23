@@ -1,9 +1,18 @@
 import os
+import re
+import hmac
+import time
 import secrets
-import random
 import requests
-from datetime import datetime, timedelta
+from collections import defaultdict
+from contextlib import contextmanager
+from datetime import timedelta
+from functools import wraps
+from urllib.parse import urlparse
+
 from flask import Flask, render_template, request, redirect, session, jsonify, send_from_directory, abort
+from flask_wtf.csrf import CSRFProtect
+from markupsafe import escape
 from werkzeug.security import generate_password_hash, check_password_hash
 import psycopg2
 import psycopg2.extras
@@ -42,82 +51,153 @@ BREVO_SENDER_EMAIL = os.environ.get("BREVO_SENDER_EMAIL")
 if not BREVO_SENDER_EMAIL:
     raise RuntimeError("Defina a variável de ambiente BREVO_SENDER_EMAIL antes de rodar o app.")
 
-BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
+BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000").rstrip("/")
+IS_HTTPS = BASE_URL.startswith("https://")
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:
     raise RuntimeError("Defina a variável de ambiente DATABASE_URL (connection string do Postgres/Supabase).")
 
 VIDEOS_DIR = os.path.join(os.path.dirname(__file__), "protected_media")
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+MAX_DISPOSITIVOS = 2
+MAX_TENTATIVAS_CODIGO = 5
+
+app.config.update(
+    WTF_CSRF_TIME_LIMIT=None,
+    WTF_CSRF_SSL_STRICT=IS_HTTPS,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=IS_HTTPS,
+    PERMANENT_SESSION_LIFETIME=timedelta(days=7),
+    MAX_CONTENT_LENGTH=1 * 1024 * 1024,
+)
+
+csrf = CSRFProtect(app)
+
+# ---------------- RATE LIMIT (por processo / worker) ----------------
+_rate_hits = defaultdict(list)
+
+
+def rate_limit(max_hits, seconds):
+    def decorator(view):
+        @wraps(view)
+        def wrapped(*args, **kwargs):
+            if request.method not in ("POST", "PUT", "PATCH"):
+                return view(*args, **kwargs)
+            ip = request.headers.get("X-Forwarded-For", request.remote_addr or "?").split(",")[0].strip()
+            key = f"{view.__name__}:{ip}"
+            agora = time.time()
+            recentes = [t for t in _rate_hits[key] if agora - t < seconds]
+            if len(recentes) >= max_hits:
+                return "Muitas tentativas. Espere um pouco e tente de novo.", 429
+            recentes.append(agora)
+            _rate_hits[key] = recentes
+            return view(*args, **kwargs)
+        return wrapped
+    return decorator
+
+
+def senha_confere(informada, esperada):
+    if not informada or not esperada:
+        return False
+    return hmac.compare_digest(informada, esperada)
+
+
+def email_valido(email):
+    return bool(email) and len(email) <= 150 and EMAIL_RE.match(email)
+
+
+def link_https_seguro(url):
+    """Só aceita https://host/... — bloqueia javascript:, data: e http."""
+    if not url or len(url) > 500:
+        return None
+    parsed = urlparse(url.strip())
+    if parsed.scheme != "https" or not parsed.netloc:
+        return None
+    host = parsed.netloc.split("@")[-1].split(":")[0].lower()
+    if host in {"localhost", "127.0.0.1", "::1"} or host.endswith(".local"):
+        return None
+    return url.strip()
+
+
+def cookie_device(resp, device_id):
+    resp.set_cookie(
+        "device_id",
+        device_id,
+        max_age=60 * 60 * 24 * 365,
+        httponly=True,
+        samesite="Lax",
+        secure=IS_HTTPS,
+    )
+    return resp
+
 
 # ---------------- BANCO (PostgreSQL / Supabase) ----------------
+@contextmanager
 def get_db():
     conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
-    return conn
+    try:
+        yield conn
+    finally:
+        conn.close()
 
 
 def init_db():
-    conn = get_db()
-    c = conn.cursor()
-
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS usuarios (
-            id SERIAL PRIMARY KEY,
-            email TEXT UNIQUE NOT NULL,
-            senha_hash TEXT NOT NULL,
-            status TEXT NOT NULL DEFAULT 'pendente'
-        )
-    ''')
-
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS progresso (
-            id SERIAL PRIMARY KEY,
-            email TEXT NOT NULL,
-            aula TEXT NOT NULL,
-            UNIQUE(email, aula)
-        )
-    ''')
-
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS palpites (
-            id SERIAL PRIMARY KEY,
-            competicao TEXT NOT NULL,
-            confronto TEXT NOT NULL,
-            mercado TEXT NOT NULL,
-            odd TEXT NOT NULL,
-            link TEXT NOT NULL,
-            hot BOOLEAN NOT NULL DEFAULT FALSE,
-            criado_em TIMESTAMP NOT NULL DEFAULT NOW()
-        )
-    ''')
-
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS dispositivos (
-            id SERIAL PRIMARY KEY,
-            email TEXT NOT NULL,
-            device_id TEXT NOT NULL,
-            verificado BOOLEAN NOT NULL DEFAULT FALSE,
-            criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
-            UNIQUE(email, device_id)
-        )
-    ''')
-
-    c.execute('''
-        CREATE TABLE IF NOT EXISTS codigos_verificacao (
-            id SERIAL PRIMARY KEY,
-            email TEXT NOT NULL,
-            device_id TEXT NOT NULL,
-            codigo TEXT NOT NULL,
-            criado_em TIMESTAMP NOT NULL DEFAULT NOW()
-        )
-    ''')
-
-    conn.commit()
-    c.close()
-    conn.close()
+    with get_db() as conn:
+        with conn.cursor() as c:
+            c.execute('''
+                CREATE TABLE IF NOT EXISTS usuarios (
+                    id SERIAL PRIMARY KEY,
+                    email TEXT UNIQUE NOT NULL,
+                    senha_hash TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'pendente'
+                )
+            ''')
+            c.execute('''
+                CREATE TABLE IF NOT EXISTS progresso (
+                    id SERIAL PRIMARY KEY,
+                    email TEXT NOT NULL,
+                    aula TEXT NOT NULL,
+                    UNIQUE(email, aula)
+                )
+            ''')
+            c.execute('''
+                CREATE TABLE IF NOT EXISTS palpites (
+                    id SERIAL PRIMARY KEY,
+                    competicao TEXT NOT NULL,
+                    confronto TEXT NOT NULL,
+                    mercado TEXT NOT NULL,
+                    odd TEXT NOT NULL,
+                    link TEXT NOT NULL,
+                    hot BOOLEAN NOT NULL DEFAULT FALSE,
+                    criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+                )
+            ''')
+            c.execute('''
+                CREATE TABLE IF NOT EXISTS dispositivos (
+                    id SERIAL PRIMARY KEY,
+                    email TEXT NOT NULL,
+                    device_id TEXT NOT NULL,
+                    verificado BOOLEAN NOT NULL DEFAULT FALSE,
+                    criado_em TIMESTAMP NOT NULL DEFAULT NOW(),
+                    UNIQUE(email, device_id)
+                )
+            ''')
+            c.execute('''
+                CREATE TABLE IF NOT EXISTS codigos_verificacao (
+                    id SERIAL PRIMARY KEY,
+                    email TEXT NOT NULL,
+                    device_id TEXT NOT NULL,
+                    codigo TEXT NOT NULL,
+                    criado_em TIMESTAMP NOT NULL DEFAULT NOW()
+                )
+            ''')
+        conn.commit()
 
 
-init_db()
+if os.environ.get("SKIP_INIT_DB") != "1":
+    init_db()
 
 # ---------------- AULAS ----------------
 # "arquivo" fica em protected_media/, NUNCA em static/ (static é público sem autenticação)
@@ -127,6 +207,14 @@ AULAS = [
     {"id": "aula3", "titulo": "Método", "arquivo": "aula3.mp4"},
 ]
 AULAS_POR_ID = {a["id"]: a for a in AULAS}
+
+
+def usuario_pago(email):
+    with get_db() as conn:
+        with conn.cursor() as c:
+            c.execute("SELECT status FROM usuarios WHERE email=%s", (email,))
+            row = c.fetchone()
+    return bool(row and row["status"] == "pago")
 
 
 # ---------------- HOME ----------------
@@ -170,13 +258,14 @@ def politica_privacidade():
 
 
 @app.route('/contato', methods=['GET', 'POST'])
+@rate_limit(5, 60)
 def contato():
     if request.method == 'POST':
         nome = request.form.get('nome', '').strip()[:100]
         email_contato = request.form.get('email', '').strip()[:150]
         mensagem = request.form.get('mensagem', '').strip()[:1000]
 
-        if nome and email_contato and mensagem:
+        if nome and email_valido(email_contato) and mensagem:
             try:
                 requests.post(
                     "https://api.brevo.com/v3/smtp/email",
@@ -189,13 +278,18 @@ def contato():
                         "sender": {"email": BREVO_SENDER_EMAIL, "name": "JV Tips - Contato"},
                         "to": [{"email": BREVO_SENDER_EMAIL}],
                         "replyTo": {"email": email_contato, "name": nome},
-                        "subject": f"Nova mensagem de contato: {nome}",
-                        "htmlContent": f"<p><strong>Nome:</strong> {nome}</p><p><strong>Email:</strong> {email_contato}</p><p><strong>Mensagem:</strong></p><p>{mensagem}</p>"
+                        "subject": f"Nova mensagem de contato: {escape(nome)}",
+                        "htmlContent": (
+                            f"<p><strong>Nome:</strong> {escape(nome)}</p>"
+                            f"<p><strong>Email:</strong> {escape(email_contato)}</p>"
+                            f"<p><strong>Mensagem:</strong></p>"
+                            f"<p>{escape(mensagem)}</p>"
+                        )
                     },
                     timeout=10
                 )
             except Exception as e:
-                app.logger.error(f"Erro ao enviar mensagem de contato: {e}")
+                app.logger.error("Erro ao enviar mensagem de contato: %s", e)
 
             return redirect('/contato/obrigado')
 
@@ -209,30 +303,28 @@ def contato_obrigado():
 
 # ---------------- REGISTRO ----------------
 @app.route('/registrar', methods=['POST'])
+@rate_limit(5, 60)
 def registrar():
     email = request.form.get('email', '').strip().lower()
     senha = request.form.get('senha', '')
 
-    if not email or not senha:
+    if not email_valido(email) or not senha:
         return "Email e senha são obrigatórios", 400
     if len(senha) < 6:
         return "A senha precisa ter pelo menos 6 caracteres", 400
 
     senha_hash = generate_password_hash(senha)
 
-    conn = get_db()
-    c = conn.cursor()
-    try:
-        c.execute(
-            "INSERT INTO usuarios (email, senha_hash, status) VALUES (%s, %s, 'pendente')",
-            (email, senha_hash)
-        )
-        conn.commit()
-    except psycopg2.errors.UniqueViolation:
-        # email já cadastrado - segue pro pagamento mesmo assim
-        conn.rollback()
-    c.close()
-    conn.close()
+    with get_db() as conn:
+        with conn.cursor() as c:
+            try:
+                c.execute(
+                    "INSERT INTO usuarios (email, senha_hash, status) VALUES (%s, %s, 'pendente')",
+                    (email, senha_hash)
+                )
+                conn.commit()
+            except psycopg2.errors.UniqueViolation:
+                conn.rollback()
 
     return redirect(f'/comprar?email={email}')
 
@@ -241,7 +333,7 @@ def registrar():
 @app.route('/comprar')
 def comprar():
     email = request.args.get('email', '').strip().lower()
-    if not email:
+    if not email_valido(email):
         return redirect('/')
 
     preference_data = {
@@ -263,31 +355,26 @@ def comprar():
     }
 
     preference = sdk.preference().create(preference_data)
-    app.logger.error(f"MP preference response: {preference}")
-
-    response = preference.get("response", {})
+    status_pref = preference.get("status")
+    response = preference.get("response", {}) or {}
     link = response.get("init_point") or response.get("sandbox_init_point")
 
     if not link:
-        return (
-            "Erro ao gerar o link de pagamento. "
-            f"Resposta do Mercado Pago: {response}"
-        ), 500
+        app.logger.error(
+            "Erro ao gerar preferência Mercado Pago (http_status=%s, message=%s)",
+            status_pref,
+            response.get("message") or response.get("error"),
+        )
+        return "Erro ao gerar o link de pagamento. Tente novamente em instantes.", 500
 
     return redirect(link)
 
 
 def marcar_pago(email):
-    conn = get_db()
-    c = conn.cursor()
-    c.execute("UPDATE usuarios SET status='pago' WHERE email=%s", (email,))
-    conn.commit()
-    c.close()
-    conn.close()
-
-
-# ---------------- CONTROLE DE DISPOSITIVOS (limite de 2 por conta) ----------------
-MAX_DISPOSITIVOS = 2
+    with get_db() as conn:
+        with conn.cursor() as c:
+            c.execute("UPDATE usuarios SET status='pago' WHERE email=%s", (email,))
+        conn.commit()
 
 
 def gerar_device_id():
@@ -295,53 +382,52 @@ def gerar_device_id():
 
 
 def contar_dispositivos_verificados(email):
-    conn = get_db()
-    c = conn.cursor()
-    c.execute("SELECT COUNT(*) AS total FROM dispositivos WHERE email=%s AND verificado=TRUE", (email,))
-    total = c.fetchone()["total"]
-    c.close()
-    conn.close()
+    with get_db() as conn:
+        with conn.cursor() as c:
+            c.execute(
+                "SELECT COUNT(*) AS total FROM dispositivos WHERE email=%s AND verificado=TRUE",
+                (email,),
+            )
+            total = c.fetchone()["total"]
     return total
 
 
 def dispositivo_verificado(email, device_id):
-    conn = get_db()
-    c = conn.cursor()
-    c.execute(
-        "SELECT verificado FROM dispositivos WHERE email=%s AND device_id=%s",
-        (email, device_id)
-    )
-    row = c.fetchone()
-    c.close()
-    conn.close()
+    with get_db() as conn:
+        with conn.cursor() as c:
+            c.execute(
+                "SELECT verificado FROM dispositivos WHERE email=%s AND device_id=%s",
+                (email, device_id)
+            )
+            row = c.fetchone()
     return bool(row and row["verificado"])
 
 
 def registrar_dispositivo(email, device_id, verificado=False):
-    conn = get_db()
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO dispositivos (email, device_id, verificado) VALUES (%s, %s, %s) "
-        "ON CONFLICT (email, device_id) DO UPDATE SET verificado=%s",
-        (email, device_id, verificado, verificado)
-    )
-    conn.commit()
-    c.close()
-    conn.close()
+    with get_db() as conn:
+        with conn.cursor() as c:
+            c.execute(
+                "INSERT INTO dispositivos (email, device_id, verificado) VALUES (%s, %s, %s) "
+                "ON CONFLICT (email, device_id) DO UPDATE SET verificado=%s",
+                (email, device_id, verificado, verificado)
+            )
+        conn.commit()
 
 
 def enviar_codigo_verificacao(email, device_id):
-    codigo = ''.join(random.choices('0123456789', k=6))
+    codigo = f"{secrets.randbelow(1_000_000):06d}"
 
-    conn = get_db()
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO codigos_verificacao (email, device_id, codigo) VALUES (%s, %s, %s)",
-        (email, device_id, codigo)
-    )
-    conn.commit()
-    c.close()
-    conn.close()
+    with get_db() as conn:
+        with conn.cursor() as c:
+            c.execute(
+                "DELETE FROM codigos_verificacao WHERE email=%s AND device_id=%s",
+                (email, device_id),
+            )
+            c.execute(
+                "INSERT INTO codigos_verificacao (email, device_id, codigo) VALUES (%s, %s, %s)",
+                (email, device_id, codigo)
+            )
+        conn.commit()
 
     try:
         resp = requests.post(
@@ -356,41 +442,42 @@ def enviar_codigo_verificacao(email, device_id):
                 "to": [{"email": email}],
                 "subject": "Seu código de acesso JV Tips",
                 "htmlContent": (
-                    f"<p>Detectamos um login em um novo dispositivo.</p>"
-                    f"<p>Seu código de verificação é:</p>"
-                    f"<h2>{codigo}</h2>"
-                    f"<p>Esse código expira em 10 minutos. Se não foi você, ignore este email.</p>"
+                    "<p>Detectamos um login em um novo dispositivo.</p>"
+                    "<p>Seu código de verificação é:</p>"
+                    f"<h2>{escape(codigo)}</h2>"
+                    "<p>Esse código expira em 10 minutos. Se não foi você, ignore este email.</p>"
                 )
             },
             timeout=10
         )
-        app.logger.error(f"Brevo status={resp.status_code} resposta={resp.text}")
+        if resp.status_code >= 400:
+            app.logger.error("Brevo recusou email de verificação (status=%s)", resp.status_code)
     except Exception as e:
-        app.logger.error(f"Erro ao enviar email de verificação: {e}")
+        app.logger.error("Erro ao enviar email de verificação: %s", e)
 
 
 def validar_codigo_verificacao(email, device_id, codigo):
-    conn = get_db()
-    c = conn.cursor()
-    c.execute(
-        "SELECT id, criado_em FROM codigos_verificacao "
-        "WHERE email=%s AND device_id=%s AND codigo=%s "
-        "ORDER BY criado_em DESC LIMIT 1",
-        (email, device_id, codigo)
-    )
-    row = c.fetchone()
+    if not codigo or not codigo.isdigit() or len(codigo) != 6:
+        return False
 
-    valido = False
-    if row and (datetime.now() - row["criado_em"]) < timedelta(minutes=10):
-        valido = True
-
-    if valido:
-        c.execute("DELETE FROM codigos_verificacao WHERE email=%s AND device_id=%s", (email, device_id))
+    with get_db() as conn:
+        with conn.cursor() as c:
+            c.execute(
+                "SELECT id FROM codigos_verificacao "
+                "WHERE email=%s AND device_id=%s AND codigo=%s "
+                "AND criado_em > (NOW() - INTERVAL '10 minutes') "
+                "ORDER BY criado_em DESC LIMIT 1",
+                (email, device_id, codigo)
+            )
+            row = c.fetchone()
+            if not row:
+                return False
+            c.execute(
+                "DELETE FROM codigos_verificacao WHERE email=%s AND device_id=%s",
+                (email, device_id),
+            )
         conn.commit()
-
-    c.close()
-    conn.close()
-    return valido
+    return True
 
 
 def resolver_email_pago(topic, resource_id):
@@ -401,7 +488,7 @@ def resolver_email_pago(topic, resource_id):
     evento (payment, merchant_order, etc.), então tratamos os dois.
     """
     try:
-        if topic and "merchant_order" in topic:
+        if topic and "merchant_order" in str(topic):
             order = sdk.merchant_order().get(resource_id)
             response = order["response"]
             pagamentos = response.get("payments", [])
@@ -413,24 +500,19 @@ def resolver_email_pago(topic, resource_id):
             response = payment["response"]
             if response.get("status") == "approved":
                 # Prioriza o email cadastrado no SITE (external_reference).
-                # O email do pagador (payer) pode ser diferente do email
-                # cadastrado - por exemplo, quando a pessoa paga logada com
-                # uma conta Mercado Pago diferente do email que ela usou
-                # pra se cadastrar no curso.
                 return response.get("external_reference") or (response.get("payer") or {}).get("email")
     except Exception as e:
-        app.logger.error(f"Erro ao consultar Mercado Pago (topic={topic}, id={resource_id}): {e}")
+        app.logger.error("Erro ao consultar Mercado Pago (topic=%s): %s", topic, e)
 
     return None
 
 
 # ---------------- WEBHOOK (fonte confiável, roda no servidor a servidor) ----------------
 @app.route('/webhook', methods=['POST'])
+@csrf.exempt
 def webhook():
     body = request.get_json(silent=True) or {}
 
-    # O Mercado Pago manda o "topic"/"type" e o "id" tanto na query string
-    # quanto (às vezes) no corpo JSON, dependendo do tipo de notificação.
     topic = request.args.get('type') or request.args.get('topic') or body.get('type') or body.get('topic')
     resource_id = (
         request.args.get('data.id')
@@ -439,75 +521,72 @@ def webhook():
         or body.get('id')
     )
 
-    app.logger.info(f"Webhook recebido: topic={topic} resource_id={resource_id} body={body}")
+    app.logger.info("Webhook recebido: topic=%s resource_id=%s", topic, resource_id)
 
     if resource_id:
         email = resolver_email_pago(topic, resource_id)
-        if email:
+        if email and email_valido(email.strip().lower()):
             marcar_pago(email.strip().lower())
 
     return "ok", 200
 
 
-# ---------------- SUCESSO (login automático quando o Mercado Pago confirma o pagamento) ----------------
+# ---------------- SUCESSO (só libera se a API do Mercado Pago confirmar) ----------------
 @app.route('/sucesso')
 def sucesso():
     payment_id = request.args.get('payment_id') or request.args.get('collection_id')
-    status = request.args.get('status') or request.args.get('collection_status')
-    external_reference = request.args.get('external_reference')
 
-    email = None
+    # Nunca confiar em status/external_reference da URL — qualquer um pode forjar.
+    if not payment_id:
+        return render_template('sucesso.html')
 
-    if payment_id:
-        email = resolver_email_pago('payment', payment_id)
+    email = resolver_email_pago('payment', payment_id)
+    if not email or not email_valido(email.strip().lower()):
+        return render_template('sucesso.html')
 
-    if not email and status == "approved" and external_reference:
-        email = external_reference
+    email = email.strip().lower()
+    marcar_pago(email)
+    session.permanent = True
+    session['user'] = email
 
-    if email:
-        email = email.strip().lower()
-        marcar_pago(email)
-        session['user'] = email
+    device_id = request.cookies.get('device_id') or gerar_device_id()
+    registrar_dispositivo(email, device_id, verificado=True)
 
-        # Primeiro dispositivo é liberado automaticamente (é o momento da compra)
-        device_id = request.cookies.get('device_id') or gerar_device_id()
-        registrar_dispositivo(email, device_id, verificado=True)
-
-        resp = redirect('/curso')
-        resp.set_cookie('device_id', device_id, max_age=60*60*24*365, httponly=True, samesite='Lax')
-        return resp
-
-    # Se não deu pra confirmar automaticamente, manda pro login
-    return render_template('sucesso.html')
+    resp = redirect('/curso')
+    return cookie_device(resp, device_id)
 
 
 # ---------------- LOGIN ----------------
 @app.route('/login', methods=['GET', 'POST'])
+@rate_limit(10, 60)
 def login():
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
         senha = request.form.get('senha', '')
 
-        conn = get_db()
-        c = conn.cursor()
-        c.execute("SELECT senha_hash FROM usuarios WHERE email=%s", (email,))
-        row = c.fetchone()
-        c.close()
-        conn.close()
+        with get_db() as conn:
+            with conn.cursor() as c:
+                c.execute("SELECT senha_hash, status FROM usuarios WHERE email=%s", (email,))
+                row = c.fetchone()
 
         if not row or not check_password_hash(row["senha_hash"], senha):
             return render_template('login.html', erro="Email ou senha inválidos")
 
+        if row["status"] != "pago":
+            return render_template(
+                'login.html',
+                erro="Não encontramos um pagamento aprovado para essa conta. "
+                     "Se você acabou de pagar, aguarde alguns segundos e tente de novo.",
+            )
+
         device_id = request.cookies.get('device_id')
 
-        # Dispositivo já reconhecido e verificado -> login direto
         if device_id and dispositivo_verificado(email, device_id):
+            session.permanent = True
             session['user'] = email
             resp = redirect('/curso')
-            resp.set_cookie('device_id', device_id, max_age=60*60*24*365, httponly=True, samesite='Lax')
-            return resp
+            return cookie_device(resp, device_id)
 
-        # Dispositivo novo -> checa limite antes de pedir verificação
         if not device_id:
             device_id = gerar_device_id()
 
@@ -523,16 +602,17 @@ def login():
 
         session['pendente_email'] = email
         session['pendente_device'] = device_id
+        session['codigo_tentativas'] = 0
 
         resp = redirect('/verificar-dispositivo')
-        resp.set_cookie('device_id', device_id, max_age=60*60*24*365, httponly=True, samesite='Lax')
-        return resp
+        return cookie_device(resp, device_id)
 
     return render_template('login.html')
 
 
 # ---------------- VERIFICAÇÃO DE DISPOSITIVO NOVO ----------------
 @app.route('/verificar-dispositivo', methods=['GET', 'POST'])
+@rate_limit(10, 60)
 def verificar_dispositivo():
     email = session.get('pendente_email')
     device_id = session.get('pendente_device')
@@ -541,12 +621,25 @@ def verificar_dispositivo():
         return redirect('/login')
 
     if request.method == 'POST':
+        tentativas = session.get('codigo_tentativas', 0) + 1
+        session['codigo_tentativas'] = tentativas
+        if tentativas > MAX_TENTATIVAS_CODIGO:
+            session.pop('pendente_email', None)
+            session.pop('pendente_device', None)
+            session.pop('codigo_tentativas', None)
+            return render_template(
+                'login.html',
+                erro="Muitas tentativas de código. Faça login de novo para receber outro.",
+            )
+
         codigo = request.form.get('codigo', '').strip()
 
         if validar_codigo_verificacao(email, device_id, codigo):
             registrar_dispositivo(email, device_id, verificado=True)
             session.pop('pendente_email', None)
             session.pop('pendente_device', None)
+            session.pop('codigo_tentativas', None)
+            session.permanent = True
             session['user'] = email
             return redirect('/curso')
 
@@ -556,12 +649,14 @@ def verificar_dispositivo():
 
 
 @app.route('/verificar-dispositivo/reenviar', methods=['POST'])
+@rate_limit(3, 60)
 def reenviar_codigo():
     email = session.get('pendente_email')
     device_id = session.get('pendente_device')
 
     if email and device_id:
         enviar_codigo_verificacao(email, device_id)
+        session['codigo_tentativas'] = 0
 
     return redirect('/verificar-dispositivo')
 
@@ -574,24 +669,16 @@ def curso():
 
     email = session['user']
 
-    conn = get_db()
-    c = conn.cursor()
-    c.execute("SELECT status FROM usuarios WHERE email=%s", (email,))
-    row = c.fetchone()
-
-    if not row or row["status"] != "pago":
-        c.close()
-        conn.close()
+    if not usuario_pago(email):
+        session.pop('user', None)
         return render_template('login.html', erro="Não encontramos um pagamento aprovado para essa conta.")
 
-    c.execute("SELECT aula FROM progresso WHERE email=%s", (email,))
-    vistas = [r["aula"] for r in c.fetchall()]
-
-    c.execute("SELECT * FROM palpites ORDER BY criado_em DESC LIMIT 20")
-    palpites = c.fetchall()
-
-    c.close()
-    conn.close()
+    with get_db() as conn:
+        with conn.cursor() as c:
+            c.execute("SELECT aula FROM progresso WHERE email=%s", (email,))
+            vistas = [r["aula"] for r in c.fetchall()]
+            c.execute("SELECT * FROM palpites ORDER BY criado_em DESC LIMIT 20")
+            palpites = c.fetchall()
 
     return render_template('curso.html', aulas=AULAS, vistas=vistas, palpites=palpites, email=email)
 
@@ -603,15 +690,7 @@ def video(aula_id):
         abort(403)
 
     email = session['user']
-
-    conn = get_db()
-    c = conn.cursor()
-    c.execute("SELECT status FROM usuarios WHERE email=%s", (email,))
-    row = c.fetchone()
-    c.close()
-    conn.close()
-
-    if not row or row["status"] != "pago":
+    if not usuario_pago(email):
         abort(403)
 
     aula = AULAS_POR_ID.get(aula_id)
@@ -628,30 +707,32 @@ def marcar():
         return jsonify({"ok": False}), 403
 
     email = session['user']
+    if not usuario_pago(email):
+        return jsonify({"ok": False}), 403
+
     aula = (request.json or {}).get('aula')
 
     if aula not in AULAS_POR_ID:
         return jsonify({"ok": False}), 400
 
-    conn = get_db()
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO progresso (email, aula) VALUES (%s, %s) ON CONFLICT (email, aula) DO NOTHING",
-        (email, aula)
-    )
-    conn.commit()
-    c.close()
-    conn.close()
+    with get_db() as conn:
+        with conn.cursor() as c:
+            c.execute(
+                "INSERT INTO progresso (email, aula) VALUES (%s, %s) ON CONFLICT (email, aula) DO NOTHING",
+                (email, aula)
+            )
+        conn.commit()
 
     return jsonify({"ok": True})
 
 
 # ---------------- PAINEL DE PALPITES (senha própria, separada do /admin) ----------------
 @app.route('/painel/login', methods=['GET', 'POST'])
+@rate_limit(10, 60)
 def painel_login():
     if request.method == 'POST':
         senha = request.form.get('senha', '')
-        if senha == PALPITES_PASSWORD:
+        if senha_confere(senha, PALPITES_PASSWORD):
             session['operador'] = True
             return redirect('/painel')
         return render_template('painel_login.html', erro="Senha incorreta")
@@ -665,33 +746,29 @@ def painel():
         return redirect('/painel/login')
 
     if request.method == 'POST':
-        competicao = request.form.get('competicao', '').strip()
-        confronto = request.form.get('confronto', '').strip()
-        mercado = request.form.get('mercado', '').strip()
-        odd = request.form.get('odd', '').strip()
-        link = request.form.get('link', '').strip()
+        competicao = request.form.get('competicao', '').strip()[:100]
+        confronto = request.form.get('confronto', '').strip()[:100]
+        mercado = request.form.get('mercado', '').strip()[:100]
+        odd = request.form.get('odd', '').strip()[:10]
+        link = link_https_seguro(request.form.get('link', ''))
         hot = request.form.get('hot') == 'on'
 
         if competicao and confronto and mercado and odd and link:
-            conn = get_db()
-            c = conn.cursor()
-            c.execute(
-                "INSERT INTO palpites (competicao, confronto, mercado, odd, link, hot) "
-                "VALUES (%s, %s, %s, %s, %s, %s)",
-                (competicao, confronto, mercado, odd, link, hot)
-            )
-            conn.commit()
-            c.close()
-            conn.close()
+            with get_db() as conn:
+                with conn.cursor() as c:
+                    c.execute(
+                        "INSERT INTO palpites (competicao, confronto, mercado, odd, link, hot) "
+                        "VALUES (%s, %s, %s, %s, %s, %s)",
+                        (competicao, confronto, mercado, odd, link, hot)
+                    )
+                conn.commit()
 
         return redirect('/painel')
 
-    conn = get_db()
-    c = conn.cursor()
-    c.execute("SELECT * FROM palpites ORDER BY criado_em DESC LIMIT 50")
-    palpites = c.fetchall()
-    c.close()
-    conn.close()
+    with get_db() as conn:
+        with conn.cursor() as c:
+            c.execute("SELECT * FROM palpites ORDER BY criado_em DESC LIMIT 50")
+            palpites = c.fetchall()
 
     return render_template('painel.html', palpites=palpites)
 
@@ -701,12 +778,10 @@ def painel_excluir(palpite_id):
     if not session.get('operador'):
         return redirect('/painel/login')
 
-    conn = get_db()
-    c = conn.cursor()
-    c.execute("DELETE FROM palpites WHERE id=%s", (palpite_id,))
-    conn.commit()
-    c.close()
-    conn.close()
+    with get_db() as conn:
+        with conn.cursor() as c:
+            c.execute("DELETE FROM palpites WHERE id=%s", (palpite_id,))
+        conn.commit()
 
     return redirect('/painel')
 
@@ -719,10 +794,11 @@ def painel_logout():
 
 # ---------------- ADMIN (agora exige senha) ----------------
 @app.route('/admin/login', methods=['GET', 'POST'])
+@rate_limit(10, 60)
 def admin_login():
     if request.method == 'POST':
         senha = request.form.get('senha', '')
-        if senha == ADMIN_PASSWORD:
+        if senha_confere(senha, ADMIN_PASSWORD):
             session['admin'] = True
             return redirect('/admin')
         return render_template('admin_login.html', erro="Senha incorreta")
@@ -735,23 +811,19 @@ def admin():
     if not session.get('admin'):
         return redirect('/admin/login')
 
-    conn = get_db()
-    c = conn.cursor()
+    with get_db() as conn:
+        with conn.cursor() as c:
+            c.execute("SELECT email, status FROM usuarios")
+            usuarios_rows = c.fetchall()
 
-    c.execute("SELECT email, status FROM usuarios")
-    usuarios_rows = c.fetchall()
+            c.execute("SELECT email, COUNT(*) AS total FROM dispositivos WHERE verificado=TRUE GROUP BY email")
+            dispositivos_por_email = {r["email"]: r["total"] for r in c.fetchall()}
 
-    c.execute("SELECT email, COUNT(*) AS total FROM dispositivos WHERE verificado=TRUE GROUP BY email")
-    dispositivos_por_email = {r["email"]: r["total"] for r in c.fetchall()}
+            usuarios = [(r["email"], r["status"], dispositivos_por_email.get(r["email"], 0)) for r in usuarios_rows]
 
-    usuarios = [(r["email"], r["status"], dispositivos_por_email.get(r["email"], 0)) for r in usuarios_rows]
-
-    c.execute("SELECT email, COUNT(aula) FROM progresso GROUP BY email")
-    progresso_rows = c.fetchall()
-    progresso = [(r["email"], r["count"]) for r in progresso_rows]
-
-    c.close()
-    conn.close()
+            c.execute("SELECT email, COUNT(aula) FROM progresso GROUP BY email")
+            progresso_rows = c.fetchall()
+            progresso = [(r["email"], r["count"]) for r in progresso_rows]
 
     return render_template('admin.html', usuarios=usuarios, progresso=progresso)
 
@@ -768,13 +840,11 @@ def admin_reset_dispositivos():
         return redirect('/admin/login')
 
     email = request.form.get('email', '').strip().lower()
-    if email:
-        conn = get_db()
-        c = conn.cursor()
-        c.execute("DELETE FROM dispositivos WHERE email=%s", (email,))
-        conn.commit()
-        c.close()
-        conn.close()
+    if email_valido(email):
+        with get_db() as conn:
+            with conn.cursor() as c:
+                c.execute("DELETE FROM dispositivos WHERE email=%s", (email,))
+            conn.commit()
 
     return redirect('/admin')
 

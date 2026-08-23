@@ -39,6 +39,7 @@
  <td>{{ u[2] }} / 2</td>
  <td>
  <form method="POST" action="/admin/reset-dispositivos" onsubmit="return confirm('Resetar dispositivos de {{ u[0] }}?');">
+ <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
  <input type="hidden" name="email" value="{{ u[0] }}">
  <button type="submit" style="background: var(--danger); width:auto; padding: 6px 12px; font-size:12px;">Resetar</button>
  </form>
