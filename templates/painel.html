@@ -25,6 +25,7 @@
 
  <div class="lp-cadastro-box" style="max-width: none; margin-bottom: 50px;">
  <form method="POST">
+ <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
  <input type="text" name="competicao" placeholder="Competição (ex: Brasileirão Série A)" maxlength="100" required>
  <input type="text" name="confronto" placeholder="Confronto (ex: Flamengo x Palmeiras)" maxlength="100" required>
  <input type="text" name="mercado" placeholder="Palpite (ex: Mais de 2.5 gols)" maxlength="100" required>
@@ -56,6 +57,7 @@
  <div class="val">{{ p.odd }}</div>
  </div>
  <form method="POST" action="/painel/excluir/{{ p.id }}" onsubmit="return confirm('Excluir este palpite?');">
+ <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
  <button type="submit" style="background: var(--danger); width:auto; padding: 10px 16px; font-size:13px;">Excluir</button>
  </form>
  </div>

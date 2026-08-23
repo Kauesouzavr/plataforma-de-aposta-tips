@@ -212,6 +212,7 @@
  <div class="lab-plan-feature"><span class="check">✓</span> Suporte via WhatsApp</div>
 
  <form action="/registrar" method="POST" style="margin-top:24px;">
+ <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
  <input type="email" name="email" placeholder="Seu email" required>
  <input type="password" name="senha" placeholder="Crie uma senha (mín. 6 caracteres)" minlength="6" required>
  <button type="submit" class="lab-btn lab-btn-primary" style="width:100%; justify-content:center; margin-top:10px;">Assinar agora</button>

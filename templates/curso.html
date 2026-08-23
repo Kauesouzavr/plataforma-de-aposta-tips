@@ -50,7 +50,9 @@
  <div class="lbl">Odd</div>
  <div class="val">{{ p.odd }}</div>
  </div>
- <a href="{{ p.link }}" target="_blank" class="pk-bet-btn">Apostar →</a>
+ {% if p.link and p.link.startswith('https://') %}
+ <a href="{{ p.link }}" target="_blank" rel="noopener noreferrer" class="pk-bet-btn">Apostar →</a>
+ {% endif %}
  </div>
  </div>
  {% endfor %}
@@ -73,13 +75,14 @@
 function marcar(aula){
  fetch('/marcar', {
  method: 'POST',
- headers: { 'Content-Type': 'application/json' },
+ headers: {
+  'Content-Type': 'application/json',
+  'X-CSRFToken': '{{ csrf_token() }}'
+ },
  body: JSON.stringify({aula: aula})
  })
 }
 
-// Marca d'água discreta com o email do usuário logado. Desincentiva
-// prints/capturas compartilhadas, já que a origem fica identificável.
 (function() {
  const email = {{ email|tojson }};
  if (!email) return;

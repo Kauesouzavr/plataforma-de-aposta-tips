@@ -2,3 +2,8 @@
 __pycache__/
 *.pyc
 database.db
+.venv/
+venv/
+.pytest_cache/
+protected_media/
+*.mp4
