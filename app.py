@@ -6,7 +6,7 @@ import secrets
 import requests
 from collections import defaultdict
 from contextlib import contextmanager
-from datetime import timedelta
+from datetime import datetime, timedelta
 from functools import wraps
 from urllib.parse import urlparse
 
@@ -34,6 +34,38 @@ if not app.secret_key:
 MP_TOKEN = os.environ.get("MP_ACCESS_TOKEN")
 if not MP_TOKEN:
     raise RuntimeError("Defina a variável de ambiente MP_ACCESS_TOKEN antes de rodar o app.")
+
+
+def detectar_modo_mp(token, modo_env=None):
+    """
+    test = credenciais de teste (não cobra de verdade).
+    production = credenciais reais (só depois do contrato).
+    """
+    token = (token or "").strip()
+    declarado = (modo_env if modo_env is not None else os.environ.get("MP_MODE", "")).strip().lower()
+    if declarado in {"test", "teste", "sandbox"}:
+        declarado = "test"
+    elif declarado in {"production", "producao", "produção", "prod"}:
+        declarado = "production"
+    else:
+        declarado = None
+
+    if token.startswith("TEST-"):
+        inferido = "test"
+    elif token.startswith("APP_USR-"):
+        inferido = "production"
+    else:
+        inferido = declarado or "test"
+
+    if declarado and inferido in {"test", "production"} and declarado != inferido:
+        raise RuntimeError(
+            "MP_MODE não bate com o MP_ACCESS_TOKEN. "
+            "Token TEST- exige MP_MODE=test. Token APP_USR- exige MP_MODE=production."
+        )
+    return declarado or inferido
+
+
+MP_MODE = detectar_modo_mp(MP_TOKEN)
 sdk = mercadopago.SDK(MP_TOKEN)
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
@@ -53,6 +85,10 @@ if not BREVO_SENDER_EMAIL:
 
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000").rstrip("/")
 IS_HTTPS = BASE_URL.startswith("https://")
+if MP_MODE == "production" and not IS_HTTPS:
+    raise RuntimeError(
+        "Em produção o BASE_URL precisa ser HTTPS (ex: https://seusite.com), sem barra no final."
+    )
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:
@@ -62,6 +98,7 @@ VIDEOS_DIR = os.path.join(os.path.dirname(__file__), "protected_media")
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 MAX_DISPOSITIVOS = 2
 MAX_TENTATIVAS_CODIGO = 5
+VIP_DIAS = int(os.environ.get("VIP_DIAS", "30"))
 
 app.config.update(
     WTF_CSRF_TIME_LIMIT=None,
@@ -108,6 +145,15 @@ def email_valido(email):
     return bool(email) and len(email) <= 150 and EMAIL_RE.match(email)
 
 
+def link_checkout_mp(response, modo=None):
+    """Em teste usa o checkout sandbox. Em produção só o link real."""
+    modo = modo or MP_MODE
+    response = response or {}
+    if modo == "production":
+        return response.get("init_point")
+    return response.get("sandbox_init_point") or response.get("init_point")
+
+
 def link_https_seguro(url):
     """Só aceita https://host/... — bloqueia javascript:, data: e http."""
     if not url or len(url) > 500:
@@ -151,9 +197,19 @@ def init_db():
                     id SERIAL PRIMARY KEY,
                     email TEXT UNIQUE NOT NULL,
                     senha_hash TEXT NOT NULL,
-                    status TEXT NOT NULL DEFAULT 'pendente'
+                    status TEXT NOT NULL DEFAULT 'pendente',
+                    pago_ate TIMESTAMP NULL
                 )
             ''')
+            c.execute("ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS pago_ate TIMESTAMP NULL")
+            c.execute(
+                """
+                UPDATE usuarios
+                SET pago_ate = NOW() + (%s * INTERVAL '1 day')
+                WHERE status = 'pago' AND pago_ate IS NULL
+                """,
+                (VIP_DIAS,),
+            )
             c.execute('''
                 CREATE TABLE IF NOT EXISTS progresso (
                     id SERIAL PRIMARY KEY,
@@ -209,12 +265,33 @@ AULAS = [
 AULAS_POR_ID = {a["id"]: a for a in AULAS}
 
 
+def vip_ainda_valido(status, pago_ate, agora=None):
+    if status != "pago" or pago_ate is None:
+        return False
+    if agora is None:
+        agora = datetime.now(pago_ate.tzinfo) if getattr(pago_ate, "tzinfo", None) else datetime.now()
+    return pago_ate > agora
+
+
 def usuario_pago(email):
     with get_db() as conn:
         with conn.cursor() as c:
-            c.execute("SELECT status FROM usuarios WHERE email=%s", (email,))
+            c.execute(
+                "SELECT status, pago_ate FROM usuarios WHERE email=%s",
+                (email,),
+            )
             row = c.fetchone()
-    return bool(row and row["status"] == "pago")
+            if not row:
+                return False
+            if vip_ainda_valido(row["status"], row["pago_ate"]):
+                return True
+            if row["status"] == "pago":
+                c.execute(
+                    "UPDATE usuarios SET status='expirado' WHERE email=%s AND (pago_ate IS NULL OR pago_ate <= NOW())",
+                    (email,),
+                )
+                conn.commit()
+    return False
 
 
 # ---------------- HOME ----------------
@@ -357,23 +434,38 @@ def comprar():
     preference = sdk.preference().create(preference_data)
     status_pref = preference.get("status")
     response = preference.get("response", {}) or {}
-    link = response.get("init_point") or response.get("sandbox_init_point")
+    link = link_checkout_mp(response)
 
     if not link:
         app.logger.error(
-            "Erro ao gerar preferência Mercado Pago (http_status=%s, message=%s)",
+            "Erro ao gerar preferência Mercado Pago (modo=%s, http_status=%s, message=%s)",
+            MP_MODE,
             status_pref,
             response.get("message") or response.get("error"),
         )
         return "Erro ao gerar o link de pagamento. Tente novamente em instantes.", 500
 
+    app.logger.info("Checkout Mercado Pago gerado (modo=%s)", MP_MODE)
     return redirect(link)
 
 
 def marcar_pago(email):
+    """Ativa o VIP por VIP_DIAS. Se ainda estiver válido, soma mais um período."""
     with get_db() as conn:
         with conn.cursor() as c:
-            c.execute("UPDATE usuarios SET status='pago' WHERE email=%s", (email,))
+            c.execute(
+                """
+                UPDATE usuarios SET
+                    status = 'pago',
+                    pago_ate = CASE
+                        WHEN pago_ate IS NOT NULL AND pago_ate > NOW()
+                            THEN pago_ate + (%s * INTERVAL '1 day')
+                        ELSE NOW() + (%s * INTERVAL '1 day')
+                    END
+                WHERE email = %s
+                """,
+                (VIP_DIAS, VIP_DIAS, email),
+            )
         conn.commit()
 
 
@@ -572,12 +664,14 @@ def login():
         if not row or not check_password_hash(row["senha_hash"], senha):
             return render_template('login.html', erro="Email ou senha inválidos")
 
-        if row["status"] != "pago":
-            return render_template(
-                'login.html',
-                erro="Não encontramos um pagamento aprovado para essa conta. "
-                     "Se você acabou de pagar, aguarde alguns segundos e tente de novo.",
+        if not usuario_pago(email):
+            mensagem = (
+                "Seu acesso VIP venceu. Assine de novo na página inicial para renovar."
+                if row["status"] in {"pago", "expirado"}
+                else "Não encontramos um pagamento aprovado para essa conta. "
+                     "Se você acabou de pagar, aguarde alguns segundos e tente de novo."
             )
+            return render_template('login.html', erro=mensagem)
 
         device_id = request.cookies.get('device_id')
 
@@ -671,7 +765,11 @@ def curso():
 
     if not usuario_pago(email):
         session.pop('user', None)
-        return render_template('login.html', erro="Não encontramos um pagamento aprovado para essa conta.")
+        return render_template(
+            'login.html',
+            erro="Seu acesso VIP venceu ou o pagamento ainda não foi confirmado. "
+                 "Assine de novo na página inicial se precisar renovar.",
+        )
 
     with get_db() as conn:
         with conn.cursor() as c:
@@ -679,8 +777,21 @@ def curso():
             vistas = [r["aula"] for r in c.fetchall()]
             c.execute("SELECT * FROM palpites ORDER BY criado_em DESC LIMIT 20")
             palpites = c.fetchall()
+            c.execute("SELECT pago_ate FROM usuarios WHERE email=%s", (email,))
+            pago_row = c.fetchone()
 
-    return render_template('curso.html', aulas=AULAS, vistas=vistas, palpites=palpites, email=email)
+    vip_ate = None
+    if pago_row and pago_row["pago_ate"]:
+        vip_ate = pago_row["pago_ate"].strftime("%d/%m/%Y")
+
+    return render_template(
+        'curso.html',
+        aulas=AULAS,
+        vistas=vistas,
+        palpites=palpites,
+        email=email,
+        vip_ate=vip_ate,
+    )
 
 
 # ---------------- VÍDEO (única forma de acessar o arquivo .mp4, sempre autenticada) ----------------
@@ -813,13 +924,16 @@ def admin():
 
     with get_db() as conn:
         with conn.cursor() as c:
-            c.execute("SELECT email, status FROM usuarios")
+            c.execute("SELECT email, status, pago_ate FROM usuarios ORDER BY email")
             usuarios_rows = c.fetchall()
 
             c.execute("SELECT email, COUNT(*) AS total FROM dispositivos WHERE verificado=TRUE GROUP BY email")
             dispositivos_por_email = {r["email"]: r["total"] for r in c.fetchall()}
 
-            usuarios = [(r["email"], r["status"], dispositivos_por_email.get(r["email"], 0)) for r in usuarios_rows]
+            usuarios = []
+            for r in usuarios_rows:
+                ate = r["pago_ate"].strftime("%d/%m/%Y") if r["pago_ate"] else "—"
+                usuarios.append((r["email"], r["status"], dispositivos_por_email.get(r["email"], 0), ate))
 
             c.execute("SELECT email, COUNT(aula) FROM progresso GROUP BY email")
             progresso_rows = c.fetchall()

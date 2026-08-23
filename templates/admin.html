@@ -29,6 +29,7 @@
  <tr>
  <th>Email</th>
  <th>Status</th>
+ <th>VIP até</th>
  <th>Dispositivos</th>
  <th></th>
  </tr>
@@ -36,6 +37,7 @@
  <tr>
  <td>{{ u[0] }}</td>
  <td>{{ u[1] }}</td>
+ <td>{{ u[3] }}</td>
  <td>{{ u[2] }} / 2</td>
  <td>
  <form method="POST" action="/admin/reset-dispositivos" onsubmit="return confirm('Resetar dispositivos de {{ u[0] }}?');">

@@ -11,9 +11,10 @@ os.environ["DATABASE_URL"] = "postgresql://user:pass@localhost:5432/testdb"
 os.environ["SKIP_INIT_DB"] = "1"
 
 import pytest
+from datetime import datetime, timedelta
 from unittest.mock import patch
 
-from app import app, email_valido, link_https_seguro
+from app import app, email_valido, link_https_seguro, detectar_modo_mp, link_checkout_mp, vip_ainda_valido
 
 
 @pytest.fixture
@@ -61,3 +62,33 @@ def test_sucesso_libera_quando_api_confirma(mock_resolver, mock_marcar, mock_dev
     mock_marcar.assert_called_once_with("pago@example.com")
     assert resposta.status_code == 302
     assert resposta.headers["Location"].endswith("/curso")
+
+
+def test_detectar_modo_mp_pelo_token():
+    assert detectar_modo_mp("TEST-abc", "") == "test"
+    assert detectar_modo_mp("APP_USR-abc", "") == "production"
+
+
+def test_detectar_modo_mp_rejeita_mistura():
+    with pytest.raises(RuntimeError):
+        detectar_modo_mp("TEST-abc", "production")
+    with pytest.raises(RuntimeError):
+        detectar_modo_mp("APP_USR-abc", "test")
+
+
+def test_link_checkout_nao_usa_sandbox_em_producao():
+    resp = {
+        "init_point": "https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=real",
+        "sandbox_init_point": "https://sandbox.mercadopago.com.br/checkout/v1/redirect?pref_id=fake",
+    }
+    assert "sandbox" not in link_checkout_mp(resp, "production")
+    assert "sandbox" in link_checkout_mp(resp, "test")
+
+
+def test_vip_ainda_valido_respeita_30_dias():
+    agora = datetime(2026, 8, 23, 12, 0, 0)
+    assert vip_ainda_valido("pago", agora + timedelta(days=30), agora)
+    assert not vip_ainda_valido("pago", agora - timedelta(seconds=1), agora)
+    assert not vip_ainda_valido("pago", None, agora)
+    assert not vip_ainda_valido("expirado", agora + timedelta(days=10), agora)
+    assert not vip_ainda_valido("pendente", agora + timedelta(days=10), agora)
