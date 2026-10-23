@@ -112,6 +112,22 @@ app.config.update(
 
 csrf = CSRFProtect(app)
 
+
+# ---------------- CABECALHOS DE SEGURANCA ----------------
+@app.after_request
+def cabecalhos_de_seguranca(resposta):
+    # Impede o site de ser embutido em iframe (clickjacking), impede o
+    # navegador de "adivinhar" o tipo de arquivo, não vaza a URL completa
+    # para outros sites e desliga câmera/microfone/localização.
+    resposta.headers.setdefault("X-Frame-Options", "DENY")
+    resposta.headers.setdefault("Content-Security-Policy", "frame-ancestors 'none'")
+    resposta.headers.setdefault("X-Content-Type-Options", "nosniff")
+    resposta.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    resposta.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+    if IS_HTTPS:
+        resposta.headers.setdefault("Strict-Transport-Security", "max-age=63072000; includeSubDomains")
+    return resposta
+
 # ---------------- RATE LIMIT (por processo / worker) ----------------
 _rate_hits = defaultdict(list)
 

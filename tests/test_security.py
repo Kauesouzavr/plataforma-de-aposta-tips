@@ -92,3 +92,11 @@ def test_vip_ainda_valido_respeita_30_dias():
     assert not vip_ainda_valido("pago", None, agora)
     assert not vip_ainda_valido("expirado", agora + timedelta(days=10), agora)
     assert not vip_ainda_valido("pendente", agora + timedelta(days=10), agora)
+
+
+def test_cabecalhos_de_seguranca(client):
+    resposta = client.get("/politica-de-privacidade")
+    assert resposta.headers["X-Frame-Options"] == "DENY"
+    assert resposta.headers["X-Content-Type-Options"] == "nosniff"
+    assert resposta.headers["Referrer-Policy"] == "strict-origin-when-cross-origin"
+    assert "frame-ancestors 'none'" in resposta.headers["Content-Security-Policy"]
