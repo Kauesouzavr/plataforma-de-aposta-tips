@@ -28,7 +28,7 @@
     </rect>
     <g font-family="'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace" font-size="15" fill="#fde68a">
       <circle cx="70" cy="64" r="5" fill="#f59e0b"><animate attributeName="opacity" values="1;0.25;1" dur="1.6s" repeatCount="indefinite"/></circle>
-      <text x="84" y="69" letter-spacing="2">PROJETO REAL · EM PRODUÇÃO</text>
+      <text x="84" y="69" letter-spacing="2">MEU PRIMEIRO PROJETO WEB COMPLETO</text>
     </g>
     <text x="62" y="138" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="58" font-weight="800" fill="url(#txt)">JV Tips</text>
     <text x="64" y="182" font-family="'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="22" fill="#9da7b3">Plataforma de assinatura VIP com pagamento e área exclusiva</text>

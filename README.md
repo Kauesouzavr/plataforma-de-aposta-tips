@@ -10,11 +10,11 @@
 
 </div>
 
-> 🇺🇸 **In English:** a paid-membership platform built for a real client and running in production. People sign up, pay a monthly fee through Mercado Pago and unlock a members-only area with daily sports analysis and protected videos. Flask + PostgreSQL on Render, with hashed passwords, CSRF protection, rate limiting, a 2-device limit per account with e-mail verification, and payments confirmed through the provider's API (never by the return URL alone).
+> 🇺🇸 **In English:** my first full web project, built while studying: a paid-membership platform. People sign up, pay a monthly fee through Mercado Pago and unlock a members-only area with daily sports analysis and protected videos. Flask + PostgreSQL on Render, with hashed passwords, CSRF protection, rate limiting, a 2-device limit per account with e-mail verification, and payments confirmed through the provider's API (never by the return URL alone).
 
 ## O que o site faz
 
-Plataforma de assinatura VIP para análises esportivas, feita para um cliente e **em produção**. A pessoa se cadastra, paga a mensalidade pelo Mercado Pago e ganha acesso a uma área exclusiva com as análises publicadas todo dia por um operador autorizado, além de um vídeo de boas-vindas.
+Plataforma de assinatura VIP para análises esportivas. Foi **meu primeiro projeto web completo**, feito enquanto eu estudava, e é onde aprendi na prática login, pagamento online, banco de dados e segurança. A pessoa se cadastra, paga a mensalidade pelo Mercado Pago e ganha acesso a uma área exclusiva com as análises publicadas todo dia por um operador autorizado, além de um vídeo de boas-vindas.
 
 | Quem | O que faz |
 | --- | --- |
