@@ -6,11 +6,11 @@
 
 <a href="https://github.com/Kauesouzavr/plataforma-de-aposta-tips/actions/workflows/ci.yml"><img src="https://github.com/Kauesouzavr/plataforma-de-aposta-tips/actions/workflows/ci.yml/badge.svg" alt="CI"/></a> <a href="https://github.com/Kauesouzavr/plataforma-de-aposta-tips/actions/workflows/codeql.yml"><img src="https://github.com/Kauesouzavr/plataforma-de-aposta-tips/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"/></a> <a href="https://github.com/Kauesouzavr/plataforma-de-aposta-tips/actions/workflows/secret-scan.yml"><img src="https://github.com/Kauesouzavr/plataforma-de-aposta-tips/actions/workflows/secret-scan.yml/badge.svg" alt="Secret scan"/></a>
 
-<a href="https://curso-yvqf.onrender.com"><b>🌐 Ver o site no ar</b></a> · <a href="#segurança"><b>Segurança</b></a> · <a href="TECNOLOGIAS.md"><b>Todas as tecnologias</b></a>
+<a href="#como-o-pagamento-funciona"><b>Fluxo de pagamento</b></a> · <a href="#segurança"><b>Segurança</b></a> · <a href="TECNOLOGIAS.md"><b>Todas as tecnologias</b></a>
 
 </div>
 
-> 🇺🇸 **In English:** my first full web project, built while studying: a paid-membership platform. People sign up, pay a monthly fee through Mercado Pago and unlock a members-only area with daily sports analysis and protected videos. Flask + PostgreSQL on Render, with hashed passwords, CSRF protection, rate limiting, a 2-device limit per account with e-mail verification, and payments confirmed through the provider's API (never by the return URL alone).
+> 🇺🇸 **In English:** my first full web project, built while studying: a paid-membership platform. People sign up, pay a monthly fee through Mercado Pago and unlock a members-only area with daily sports analysis and protected videos. Flask + PostgreSQL, deployed on Render while the project was active, with hashed passwords, CSRF protection, rate limiting, a 2-device limit per account with e-mail verification, and payments confirmed through the provider's API (never by the return URL alone).
 
 ## O que o site faz
 
@@ -61,7 +61,7 @@ O acesso só é liberado depois que o próprio site **consulta o pagamento na AP
 | Pagamentos | Mercado Pago Checkout Pro + webhook |
 | E-mail | Brevo (API HTTPS) |
 | Frontend | HTML, CSS e JavaScript puros com Jinja2; efeitos 3D só com CSS |
-| Hospedagem | Render, com deploy automático a cada push na `main` |
+| Hospedagem | Render, com deploy automático a cada push na `main` (o site ficou no ar durante o projeto; hoje está desativado) |
 
 A lista completa, com o porquê de cada escolha, está em [`TECNOLOGIAS.md`](TECNOLOGIAS.md).
 
