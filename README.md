@@ -6,11 +6,11 @@
 
 <a href="https://github.com/Kauesouzavr/plataforma-de-aposta-tips/actions/workflows/ci.yml"><img src="https://github.com/Kauesouzavr/plataforma-de-aposta-tips/actions/workflows/ci.yml/badge.svg" alt="CI"/></a> <a href="https://github.com/Kauesouzavr/plataforma-de-aposta-tips/actions/workflows/codeql.yml"><img src="https://github.com/Kauesouzavr/plataforma-de-aposta-tips/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"/></a> <a href="https://github.com/Kauesouzavr/plataforma-de-aposta-tips/actions/workflows/secret-scan.yml"><img src="https://github.com/Kauesouzavr/plataforma-de-aposta-tips/actions/workflows/secret-scan.yml/badge.svg" alt="Secret scan"/></a>
 
-<a href="#como-o-pagamento-funciona"><b>Fluxo de pagamento</b></a> · <a href="#segurança"><b>Segurança</b></a> · <a href="TECNOLOGIAS.md"><b>Todas as tecnologias</b></a>
+<a href="#como-o-pagamento-funciona"><b>Fluxo de pagamento</b></a> &nbsp;&nbsp;&nbsp; <a href="#segurança"><b>Segurança</b></a> &nbsp;&nbsp;&nbsp; <a href="TECNOLOGIAS.md"><b>Todas as tecnologias</b></a>
 
 </div>
 
-> 🇺🇸 **In English:** my first full web project, built while studying: a paid-membership platform. People sign up, pay a monthly fee through Mercado Pago and unlock a members-only area with daily sports analysis and protected videos. Flask + PostgreSQL, deployed on Render while the project was active, with hashed passwords, CSRF protection, rate limiting, a 2-device limit per account with e-mail verification, and payments confirmed through the provider's API (never by the return URL alone).
+> **In English:** my first full web project, built while studying: a paid-membership platform. People sign up, pay a monthly fee through Mercado Pago and unlock a members-only area with daily sports analysis and protected videos. Flask + PostgreSQL, deployed on Render while the project was active, with hashed passwords, CSRF protection, rate limiting, a 2-device limit per account with e-mail verification, and payments confirmed through the provider's API (never by the return URL alone).
 
 ## O que o site faz
 
@@ -87,4 +87,4 @@ python -m pytest        # testes de segurança
 
 ---
 
-Feito por **Kauê Souza** · [LinkedIn](https://www.linkedin.com/in/kauesouzaproti/) · [GitHub](https://github.com/Kauesouzavr)
+Feito por **Kauê Souza**. Para conversar, me chame no [LinkedIn](https://www.linkedin.com/in/kauesouzaproti/).

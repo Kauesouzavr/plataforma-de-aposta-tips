@@ -1,4 +1,4 @@
-# JV Tips — Descrição completa do projeto
+# JV Tips: descrição completa do projeto
 
 Documento com tudo que foi usado para construir, proteger e hospedar o site, do início ao fim.
 
@@ -26,15 +26,15 @@ Plataforma de assinatura (VIP) para análises e palpites esportivos. A pessoa se
 - **PostgreSQL**, hospedado gratuitamente no **Supabase**
 - Conectado via *Session Pooler* (compatível com redes IPv4, que é o caso do Render)
 - Tabelas:
-  - `usuarios` — email, senha (hash), status (pendente/pago)
-  - `progresso` — controle de quais vídeos cada usuário já assistiu
-  - `palpites` — os palpites publicados (competição, confronto, mercado, odd, link, destaque)
-  - `dispositivos` — controla quais aparelhos cada conta já usou para logar (limite de 2)
-  - `codigos_verificacao` — códigos temporários de 6 dígitos para liberar dispositivo novo
+  - `usuarios`: email, senha (hash), status (pendente/pago)
+  - `progresso`: controle de quais vídeos cada usuário já assistiu
+  - `palpites`: os palpites publicados (competição, confronto, mercado, odd, link, destaque)
+  - `dispositivos`: controla quais aparelhos cada conta já usou para logar (limite de 2)
+  - `codigos_verificacao`: códigos temporários de 6 dígitos para liberar dispositivo novo
 
 ## Pagamentos
 
-- **Mercado Pago — Checkout Pro**
+- **Mercado Pago Checkout Pro**
   - Preferência de pagamento criada dinamicamente por usuário
   - Webhook (`/webhook`) recebe a confirmação em tempo real, tratando os dois formatos de notificação que o Mercado Pago envia (`payment` e `merchant_order`)
   - Login automático da pessoa assim que o pagamento é aprovado (via `/sucesso`)
@@ -42,14 +42,14 @@ Plataforma de assinatura (VIP) para análises e palpites esportivos. A pessoa se
 
 ## Envio de email
 
-- **Brevo** (antigo Sendinblue) — API de email transacional
+- **Brevo** (antigo Sendinblue): API de email transacional
   - Usado para mandar o código de verificação de dispositivo novo
   - Escolhido depois de testar **Resend** (só permitia mandar para o próprio email sem domínio verificado) e **Gmail via SMTP** (bloqueado pelo Render no plano gratuito)
   - Funciona via HTTPS, então não é afetado pelo bloqueio de portas SMTP do Render
 
 ## Hospedagem
 
-- **Render** — hospeda o site (web service)
+- **Render**: hospeda o site (web service)
   - Deploy automático a cada `git push` na branch `main`
   - Variáveis de ambiente configuradas lá (nenhuma credencial fica no código)
   - Limitações do plano gratuito identificadas: hibernação por inatividade e bloqueio de portas SMTP
@@ -57,8 +57,8 @@ Plataforma de assinatura (VIP) para análises e palpites esportivos. A pessoa se
 ## Frontend
 
 - **HTML + CSS + JavaScript puro** (sem framework de frontend nem processo de build)
-- **Jinja2** — motor de templates do Flask, usado para gerar o HTML dinâmico
-- **Google Fonts** — Archivo Black, Inter, JetBrains Mono
+- **Jinja2**: motor de templates do Flask, usado para gerar o HTML dinâmico
+- **Google Fonts**: Archivo Black, Inter, JetBrains Mono
 - Efeitos visuais construídos do zero, sem bibliotecas externas de animação/3D:
   - Objetos girando em 3D (bola de basquete, bola de futebol, ficha) feitos só com CSS (gradientes, sombras internas, `transform-style: preserve-3d`)
   - Cards com inclinação 3D que segue o mouse (`perspective` + `rotateX/rotateY` via JavaScript)
@@ -76,7 +76,7 @@ Plataforma de assinatura (VIP) para análises e palpites esportivos. A pessoa se
 - Verificação por código de 6 dígitos enviado por email ao logar de um dispositivo novo
 - Vídeos protegidos: servidos por uma rota autenticada (`/video/<id>`), não por arquivo estático público
 - Marca d'água identificando o usuário, para rastrear vazamento de conteúdo
-- Nenhuma credencial no código-fonte — tudo em variáveis de ambiente
+- Nenhuma credencial no código-fonte, tudo em variáveis de ambiente
 
 ## Controle de versão e deploy
 
